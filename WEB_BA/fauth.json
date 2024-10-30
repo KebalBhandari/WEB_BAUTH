@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "behavioral-authentication",
+  "private_key_id": "1695fc165d0c95285f6001f6cf03b51992efd0d2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCvVSpp8muNVaHV\nanmgZeXZtmu82beMzxhRK8+iNqV0p0MNn6f5qOaqT9HpNl6kGne+nnP31Q37ND87\nAr6rEkuGt+7Dh0uES4OxzIHOiykwL2AjzSQESwgF6eqQtFDeQ+/lsuEhy69N9l7i\nPm+WJ8NMZr+7i2ro6XWe8FRX8ekWEJ5et8zs0QW6yx7RZMHCEfxzSYfdVdKLFbUW\nuH0RVtdcIKpNIXDqjU5gOXkM3a/i+ZjeTdi89aDRwfZvywTLakLnzMraxh+17h35\n7BzXjss0BO65fzr1iu79AoipFPfv/MfYsC6K7lVCdQ2Dg11HUXiiGqmVfQoWcZD8\ndPQknkpFAgMBAAECggEAOL9kXGkhZVu3Zucw2XjRhX8U7Mk8rr7inHcFG3f7Yj+2\npKStjdEcYzg1dPlrdUq5wgDwAOE8xrbY1kUjqCPiPQawKSnTh8yXIcdSpiKFYLqc\nr8m4JAmS3bMhf9dUqzOq5Bna4wDVSvL4L9rMa/mPrN0+pjlQD3VsY9ZePh6mdcS9\nv5emXWMgEDiz+FcumNHBEwu/GyT2XCrXDJJ8EmG0KMYVaOUGcMVyxkJ79/KeFhE4\nV8iKDsWuBD39hcUY5HhI//e02Sa1ALDTTxghrVFI+aESxQQEI0ftfpbn10OuTMzB\n33MV93Y2Y3OyOY6+aG3HVP59dWR6U3gnl2EKZHiNGwKBgQDzVQtJ5sW7CmXl2T7x\nOqtTpRLuZDC/euCf3PTQyjr4eaM7FO0bJJF5R/DyVDZRCrjr6yBcpK7HVvyd4OCL\nuSnQ9Du6vnu/ro/2jDW+e7OsnJf25ExGRaeYHylnUtvWzVaic6TEYnXSfmWbXVoh\ns+WPGnhRJGhr58YxbtJKHJrq5wKBgQC4dd990L9zg5ejXlJG+Sun3Es5NO4w490c\nIttsQPTYZFSgkEjDgamyYEcAuInAwGzFPp832naADL6T/pzD5EwS6uw9Zp9TkBSi\n28Hu8fUmDRdPZEv9rkzZPCNJ39COtZfwWWqrcDZZy8DVM6LrBplcU34VwBD+nRgj\nPpOJ3hMH8wKBgD1yzoT9GBXhzFW9BN4aOMXIu/0jpAPW3f7A57oKN9YjsYrr/+yI\n0YvVFQ29InJYyNYa7HM4y0Jfvy+HaG0gd2TjKGpCTDHdvVE/mxrdVkRSzzVz9acR\nU/9gby4+iHG4LRadKZDGZIahkLspWeeE7IW044lqLkyBnVVCbSx2CNElAoGAGYOs\nYzHBmY/FJMLCLLEAedp9yS7qF3cdOWwU37doZpoSHpd2iRxhRZwNlirwWuoC4ZGU\n4lvkcjfREJVyR6JHZ4J5JNESDrPqNtCg1ZVALIA5DjE4VaGLXaz00J4VsfeqSYOE\nvqvpyKfnR1Y6Hbou8ldWJFoJv74o/Y8FR1ehWEMCgYBimh1WK7ofXI0YCNAsgrGs\n2KfGklZE3SX6N+/3rxhqatRlT7b5cBqwmo/pp9BkCl6+hgP5xIOyDfR1xw+ycRAp\nlHmvsQcdTFRYkUo3mGTErnVOoo+kOcO/VaXFmNyiULhj/WO/NCYcZQiRzJQDhwVg\nD34FX3XPe37RCArZsCAVkQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-ezsog@behavioral-authentication.iam.gserviceaccount.com",
+  "client_id": "111655993655322516665",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-ezsog%40behavioral-authentication.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

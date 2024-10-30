@@ -16,6 +16,8 @@ namespace WEB_BA
             services.AddDistributedMemoryCache();
             services.AddRazorPages();
             services.AddControllersWithViews();
+            services.AddHttpClient<FirebaseService>();
+            services.AddSingleton<FirebaseService>();
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(10);
