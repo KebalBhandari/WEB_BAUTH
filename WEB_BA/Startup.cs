@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using WEB_BA.Services;
 
 namespace WEB_BA
 {
@@ -15,25 +18,27 @@ namespace WEB_BA
         {
             services.AddDistributedMemoryCache();
             services.AddRazorPages();
-            services.AddControllersWithViews();
+            services.AddControllersWithViews()
+                .AddRazorRuntimeCompilation()
+                .AddViewOptions(options =>
+                {
+                    options.HtmlHelperOptions.ClientValidationEnabled = true;
+                });
+
             services.AddHttpClient<FirebaseService>();
-            services.AddSingleton<FirebaseService>();
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(10);
             });
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-               .AddCookie(options =>
-               {
-                   options.Cookie.Expiration = TimeSpan.FromMinutes(10);
-               });
-            services.ConfigureApplicationCookie(options =>
-            {
-                options.LoginPath = "/SessionExpired";
-                options.SlidingExpiration = true;
-            });
-        }
 
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(10); // Sets the cookie lifetime
+                    options.SlidingExpiration = true; // Refreshes the cookie expiration on each request if active
+                    options.LoginPath = "/SessionExpired"; // Redirect to login when unauthorized
+                });
+        }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -63,18 +68,13 @@ namespace WEB_BA
             app.UseStaticFiles();
             app.UseSession();
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                        name: "default",
-                        pattern: "{controller=Login}/{action=Index}/{id?}");
-            });
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute(
-                        name: "default",
-                        pattern: "{controller=PageNotFound}/{action=index}");
+                    name: "default",
+                    pattern: "{controller=Login}/{action=Index}");
             });
         }
     }

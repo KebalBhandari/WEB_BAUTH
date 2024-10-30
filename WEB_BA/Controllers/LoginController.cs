@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Text;
 using WEB_BA.Models;
+using WEB_BA.Services;
 
 namespace WEB_BA.Controllers
 {
@@ -17,40 +16,50 @@ namespace WEB_BA.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            ViewBag.msgtype = "";
-            ViewBag.message = "";
+            TempData["msgtype"] = null;
+            TempData["message"] = null;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginModel model)
+        public async Task<IActionResult> Index(LoginModel model)
         {
             if (!ModelState.IsValid)
+            {
+                TempData["msgtype"] = "error";
+                TempData["message"] = "Please correct the errors and try again.";
                 return View(model);
-
+            }
             try
             {
                 var idToken = await _firebaseService.LoginWithEmailAndPasswordAsync(model.Email, model.Password);
                 if (idToken is null)
                 {
-                    ViewBag.msgtype = "Error";
-                    ViewBag.message = "The username or password you entered is incorrect.";
+                    TempData["msgtype"] = "info";
+                    TempData["message"] = "Login Failed, Try Again !!!";
                     return View();
                 }
                 else
                 {
                     HttpContext.Session.SetString("TokenNo", idToken);
+                    TempData["msgtype"] = "LoginSuccess";
+                    TempData["message"] = "Login Successfull !!!";
                     return RedirectToAction("Index", "Dashboard");
-                    
                 }
             }
-            catch (Exception)
+            catch (FirebaseAuthenticationException ex)
             {
-                ModelState.AddModelError(string.Empty, "Login failed. Please check your credentials.");
+                TempData["msgtype"] = "info";
+                TempData["message"] = ex.FirebaseMessage;
+                return View();
             }
-
-            return View();
+            catch (Exception ex)
+            {
+                TempData["msgtype"] = "info";
+                TempData["message"] = ex.ToString();
+                return View();
+            }
         }
     }
 }
