@@ -40,7 +40,7 @@ namespace WEB_BA.Services
 
                 if (firebaseError?.Error != null)
                 {
-                    throw new FirebaseAuthenticationException(firebaseError.Error.Code, firebaseError.Error.Message);
+                    throw new FirebaseAuthenticationException(firebaseError.Error.Code, firebaseError.Error.Message ?? "Unknown error Occured !!!");
                 }
                 else
                 {
@@ -84,7 +84,7 @@ namespace WEB_BA.Services
 
                 if (firebaseError?.Error != null)
                 {
-                    throw new FirebaseAuthenticationException(firebaseError.Error.Code, firebaseError.Error.Message);
+                    throw new FirebaseAuthenticationException(firebaseError.Error.Code, firebaseError.Error.Message ?? "Unknown error Occured !!!");
                 }
                 else
                 {
