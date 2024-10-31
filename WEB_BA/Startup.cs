@@ -74,7 +74,7 @@ namespace WEB_BA
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Dashboard}/{action=Index}");
+                    pattern: "{controller=Login}/{action=Index}");
             });
         }
     }
