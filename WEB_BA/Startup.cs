@@ -42,6 +42,14 @@ namespace WEB_BA
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                context.Response.Headers["Pragma"] = "no-cache";
+                context.Response.Headers["Expires"] = "0";
+                await next();
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseExceptionHandler("/ExceptionError");

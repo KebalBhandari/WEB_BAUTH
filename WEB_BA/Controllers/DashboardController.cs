@@ -4,6 +4,7 @@ namespace WEB_BA.Controllers
 {
     public class DashboardController : Controller
     {
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Index()
         {
             try
