@@ -34,9 +34,9 @@ namespace WEB_BA
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(10); // Sets the cookie lifetime
-                    options.SlidingExpiration = true; // Refreshes the cookie expiration on each request if active
-                    options.LoginPath = "/SessionExpired"; // Redirect to login when unauthorized
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+                    options.SlidingExpiration = true; 
+                    options.LoginPath = "/SessionExpired";
                 });
         }
 
