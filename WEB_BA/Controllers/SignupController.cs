@@ -15,7 +15,7 @@ namespace WEB_BA.Controllers
 
         [HttpGet]
         public IActionResult Index()
-        {
+        { 
             TempData["msgtype"] = "";
             TempData["message"] = "";
             return View();
