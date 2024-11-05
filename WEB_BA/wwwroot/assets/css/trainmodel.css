@@ -1,0 +1,109 @@
+﻿.result {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+#dotArea,
+#shapeArea {
+    border: 2px dashed #6c757d;
+    height: 250px;
+    position: relative;
+    margin-bottom: 20px;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+.instructions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 1.2rem;
+    flex-direction: column;
+    height: 100%;
+}
+
+.dot,
+.shape {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.dot {
+    background-color: rgba(42, 6, 82, 0.8);
+    border-radius: 50%;
+}
+
+.shape:hover {
+    transform: scale(1.1);
+}
+
+.circle {
+    background-color: #ff6384;
+    border-radius: 50%;
+}
+
+.square {
+    background-color: #36a2eb;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 30px solid transparent;
+    border-right: 30px solid transparent;
+    border-bottom: 60px solid #ffcd56;
+    background: none;
+}
+
+.prompt-text {
+    font-size: 1rem;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+
+/* Button animation styles */
+.btn-animated {
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.3s;
+}
+
+    .btn-animated::after {
+        content: '';
+        position: absolute;
+        left: -100%;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: left 0.5s;
+    }
+
+    .btn-animated:hover::after {
+        left: 100%;
+    }
+
+    .btn-animated:active {
+        background-color: #0056b3 !important;
+    }
+
+.dot-count,
+.attempt-count {
+    font-size: 0.9rem;
+    margin-top: 5px;
+    color: #6c757d;
+}
+
+/* Progress bar styles */
+.progress {
+    height: 20px;
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    transition: width 0.4s ease;
+}

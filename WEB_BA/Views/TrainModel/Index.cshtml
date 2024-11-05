@@ -2,7 +2,7 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
+<link href="~/assets/css/trainmodel.css" rel="stylesheet" />
 <div class="content-page">
     <div class="content">
         <div class="container-fluid">
@@ -15,31 +15,49 @@
                                 <li class="breadcrumb-item active">Train Model</li>
                             </ol>
                         </div>
-                        <h4 class="page-title">Train Model</h4>
+                        <h4 class="page-title">Behavioral Authentication Demo</h4>
                     </div>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-12">
-
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-lg-3">
+                                <div class="col-lg-12">
                                     <div class="d-grid">
-                                        <button class="btn btn-lg font-16 btn-danger" id="btn-new-event">
-                                            <i class="mdi mdi-plus-circle-outline"></i> Create New Event
-                                        </button>
-                                    </div>
-                                   
+                                        <div id="testSection">
+                                            <p>Attempt <span id="currentAttempt">1</span> of 3 [ <span id="taskInstruction">Please click on the dots that appear and type the following text:</span> ] </p>
+                                            <div class="progress">
+                                                <div id="taskProgressBar" class="progress-bar progress-bar-striped" role="progressbar"
+                                                     style="width: 0%;">
+                                                    0%
+                                                </div>
+                                            </div>
+                                            <div id="dotArea" class="instructions">
+                                                Click on the dots as they appear.
+                                                <div id="dotCount" class="dot-count">Dots Clicked: 0/15</div>
+                                            </div>
+                                            <div id="shapeArea" class="instructions" style="display: none;">
+                                                <p id="shapeQuestion" class="mb-2"></p>
+                                                <div id="shapesContainer"></div>
+                                                <div id="shapeCount" class="dot-count">Shapes Selected: 0/15</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="inputText" class="form-label">Your Input:</label><blockquote class="blockquote">
+                                                    <p id="promptText" class="prompt-text"></p>
+                                                </blockquote>
+                                                <textarea class="form-control" id="inputText" rows="3" placeholder="Type here..."></textarea>
+                                            </div>
+                                            <button class="btn btn-primary btn-animated" id="nextAttempt">Next Attempt</button>
+                                        </div>
 
-                                </div>
-
-                                <div class="col-lg-9">
-                                    <div class="mt-4 mt-lg-0">
-                                        <div id="calendar"></div>
-                                    </div>
+                                        <div id="resultSection" class="mt-5" style="display: none;">
+                                            <p class="result">Matching Percentage: <span id="matchingPercent">0</span>%</p>
+                                            <button class="btn btn-secondary" id="tryAgain">Try Again</button>
+                                        </div>
+                                    </div>                               
                                 </div>
                             </div>
                         </div>
@@ -48,5 +66,5 @@
             </div>
         </div>
     </div> 
-
 </div>
+<script src="~/assets/js/trainmodel.js"></script>
