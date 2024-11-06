@@ -39,6 +39,12 @@
                                 @Html.AntiForgeryToken()
                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                 <div class="mb-3">
+                                    <label asp-for="Username" class="form-label">Username</label>
+                                    <input class="form-control" type="text" id="Username" asp-for="Username" required placeholder="Enter your Username">
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
                                     <label asp-for="Email" class="form-label">Email address</label>
                                     <input class="form-control" type="email" id="Email" asp-for="Email" required placeholder="Enter your email">
                                     <span asp-validation-for="Email" class="text-danger"></span>
@@ -116,7 +122,10 @@
             });
 
             $('#condition_button').click(function () {
-            if ($('#Email').val() == "") {
+            if ($('#Username').val() == "") {
+                AlertTost('error', 'Username is required !!!');
+            }
+            else if ($('#Email').val() == "") {
                 AlertTost('error', 'Email is required !!!');
             }
             else if ($('#Password').val() == "") {

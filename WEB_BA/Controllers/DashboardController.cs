@@ -16,8 +16,18 @@ namespace WEB_BA.Controllers
                 }
                 else
                 {
-                    ViewBag.msgtype = "";
-                    ViewBag.message = "";
+                    var UserName = HttpContext.Session.GetString("UserName");
+                    if (UserName=="")
+                    {
+                        TempData["UserName"] = "Welcome";
+                    }
+                    else
+                    {
+                        TempData["UserName"] = UserName;
+                    }
+                    
+                    TempData["msgtype"] = "";
+                    TempData["message"] = "";
                     return View();
                 }
             }

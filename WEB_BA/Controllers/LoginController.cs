@@ -42,7 +42,12 @@ namespace WEB_BA.Controllers
                 }
                 else
                 {
+                    var userProfile = _firebaseService.DecodeIdToken(idToken);
+
                     HttpContext.Session.SetString("TokenNo", idToken);
+                    HttpContext.Session.SetString("UserName", userProfile.DisplayName ?? "");
+                    HttpContext.Session.SetString("UserEmail", userProfile.Email ?? "");
+
                     TempData["msgtype"] = "LoginSuccess";
                     TempData["message"] = "Login Successfull !!!";
                     return RedirectToAction("Index", "Dashboard");

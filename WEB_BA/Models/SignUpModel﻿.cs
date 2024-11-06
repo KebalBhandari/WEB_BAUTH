@@ -4,6 +4,9 @@ namespace WEB_BA.Models
 {
     public class SignUpModel﻿
     {
+        [Required(ErrorMessage = "Username is required.")]
+        public required string Username { get; set; }
+
         [Required(ErrorMessage = "Email is required.")]
         [EmailAddress(ErrorMessage = "Invalid email format.")]
         [StringLength(254, MinimumLength = 6, ErrorMessage = "Email must be between 6 and 254 characters.")]

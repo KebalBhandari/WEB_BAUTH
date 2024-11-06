@@ -13,29 +13,32 @@
         "Big Fuji waves pitch enzymed kex liquor jugs."
     ];
 
-    const totalDots = 15; // Number of dots to click
-    const totalShapes = 15; // Number of shape selections
+    const totalDots = 5; // Number of dots to click
+    const totalShapes = 5; // Number of shape selections
     const totalAttempts = 3; // Number of attempts
     let currentAttempt = 1;
 
-    let timings = []; // Array to hold typing timings for all attempts
+    let timings = []; // Time between key presses for all attempts
+    let keyHoldTimes = []; // Duration each key is held down for all attempts
     let dotTimings = []; // Array to hold dot timings for attempts 1 and 3
     let shapeTimings = []; // Array to hold shape selection timings for attempt 2
-    let promptTexts = []; // Array to hold prompt texts for each attempt
-    let userInputs = []; // Array to hold user inputs for each attempt
+    let shapeMouseMovements = []; // Mouse movement data during shape selection
+    let promptTexts = []; // Prompt texts for each attempt
+    let userInputs = []; // User inputs for each attempt
 
-    // Declare lastTime at the top level
-    let lastTime = null;
+    let lastKeyTime = null; // Last keydown time
 
     // Initialize the test
     function initializeTest() {
         // Reset variables
         timings = [];
+        keyHoldTimes = [];
         dotTimings = [];
         shapeTimings = [];
+        shapeMouseMovements = [];
         userInputs = [];
         promptTexts = [];
-        lastTime = null;
+        lastKeyTime = null;
         currentAttempt = 1;
         $('#inputText').val('');
         $('#matchingPercent').text('0');
@@ -127,13 +130,33 @@
         const shapes = ['circle', 'square', 'triangle'];
         let shapeCount = 0;
         const timingsArray = [];
+        const mouseMovements = []; // Array to store mouse movement data
         const area = document.getElementById('shapeArea');
+
+        // Add mousemove event listener
+        $('#shapeArea').on('mousemove', function (event) {
+            const currentTime = performance.now();
+            const x = event.pageX - $('#shapeArea').offset().left;
+            const y = event.pageY - $('#shapeArea').offset().top;
+            mouseMovements.push({
+                time: currentTime,
+                x: x,
+                y: y
+            });
+        });
 
         function showShapes() {
             if (shapeCount >= totalShapes) {
                 // All shapes selected, clear shapes
                 $('#shapesContainer').empty();
                 $('#shapeQuestion').text('All shapes selected.');
+
+                // Remove mousemove event listener
+                $('#shapeArea').off('mousemove');
+
+                // Store the mouseMovements data for this attempt
+                shapeMouseMovements[0] = mouseMovements;
+
                 return;
             }
             $('#shapesContainer').empty();
@@ -180,22 +203,58 @@
 
         showShapes(); // Start with the first shape selection
 
-        // Store the timings array for the second attempt
+        // Store the timings array and mouse movements for the second attempt
         shapeTimings[0] = timingsArray;
     }
 
-    // Capture typing pattern
+    // Capture typing patterns
     $('#inputText').on('keydown', function (event) {
         let currentTime = new Date().getTime();
-        if (lastTime !== null) {
-            let interval = currentTime - lastTime;
+        // Time between key presses
+        if (lastKeyTime !== null) {
+            let interval = currentTime - lastKeyTime;
             if (!timings[currentAttempt - 1]) {
                 timings[currentAttempt - 1] = [];
             }
             timings[currentAttempt - 1].push(interval);
         }
-        lastTime = currentTime;
+        lastKeyTime = currentTime;
+
+        // Record keydown time for key hold duration
+        if (!keyHoldTimes[currentAttempt - 1]) {
+            keyHoldTimes[currentAttempt - 1] = [];
+        }
+        keyHoldTimes[currentAttempt - 1].push({
+            keydownTime: currentTime,
+            keyupTime: null,
+            duration: null
+        });
     });
+
+    $('#inputText').on('keyup', function (event) {
+        let currentTime = new Date().getTime();
+
+        // Find the last keyHoldTimes entry with null keyupTime
+        let keyDataArray = keyHoldTimes[currentAttempt - 1];
+        for (let i = keyDataArray.length - 1; i >= 0; i--) {
+            if (keyDataArray[i].keyupTime === null) {
+                keyDataArray[i].keyupTime = currentTime;
+                keyDataArray[i].duration = keyDataArray[i].keyupTime - keyDataArray[i].keydownTime;
+                break;
+            }
+        }
+    });
+
+    // Prevent copy, paste, and cut in the input field
+    //$('#inputText').on('copy paste cut', function (e) {
+    //    e.preventDefault();
+    //    alert('Copying and pasting are disabled. Please type the text manually.');
+    //});
+
+    //// Disable context menu (right-click) on the input field
+    //$('#inputText').on('contextmenu', function (e) {
+    //    e.preventDefault();
+    //});
 
     // Next Attempt button functionality
     $('#nextAttempt').click(function () {
@@ -210,6 +269,10 @@
         }
         if (!timings[currentAttempt - 1] || timings[currentAttempt - 1].length < 1) {
             alert('Not enough typing data captured. Please try typing again.');
+            return;
+        }
+        if (!keyHoldTimes[currentAttempt - 1] || keyHoldTimes[currentAttempt - 1].length < 1) {
+            alert('Not enough key hold data captured. Please try typing again.');
             return;
         }
 
@@ -231,7 +294,7 @@
         if (currentAttempt < totalAttempts) {
             // Prepare for the next attempt
             currentAttempt++;
-            lastTime = null;
+            lastKeyTime = null;
             $('#inputText').val('');
             $('#currentAttempt').text(currentAttempt);
             updateProgressBar(0);
@@ -249,96 +312,117 @@
             }
 
             $('#promptText').text(promptTexts[currentAttempt - 1]);
+
+            // After the second attempt, send data to the server
+            if (currentAttempt === 3) {
+                saveDataToServer();
+            }
         } else {
             // All attempts completed, proceed to results
             $(this).addClass('btn-animated');
             $('#testSection').hide();
-            calculateResults();
+            fetchDataAndCalculateResults();
         }
     });
 
-    // Calculate and display results
-    function calculateResults() {
-        let typingMatch = compareMultipleAttempts(timings);
-        let actionMatch = compareActions();
-        let overallMatch = (typingMatch * 0.6) + (actionMatch * 0.4); // Weighted average
+    // Function to send data to the server after the second attempt
+    function saveDataToServer() {
+        const dataToSend = {
+            timings: timings.slice(0, 2), // First two attempts
+            keyHoldTimes: keyHoldTimes.slice(0, 2),
+            dotTimings: dotTimings.slice(0, 1),
+            shapeTimings: shapeTimings,
+            shapeMouseMovements: shapeMouseMovements
+        };
+
+        // Verify that keys are not included
+        console.log('Data being sent to server:', dataToSend);
+
+        $.ajax({
+            url: '/TrainModel/SaveUserData',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(dataToSend),
+            success: function (response) {
+                console.log('Data saved successfully.');
+            },
+            error: function (xhr, status, error) {
+                console.error('Error saving data:', error);
+                alert('An error occurred while saving your data. Please try again.');
+            }
+        });
+    }
+
+    // Function to fetch data from the server after the third attempt
+    function fetchDataAndCalculateResults() {
+        $.ajax({
+            url: '/TrainModel/GetUserData',
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (savedData) {
+                // Compare the saved data with the data from the third attempt
+                compareDataAndDisplayResults(savedData);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching data:', error);
+                alert('An error occurred while fetching your data. Please try again.');
+            }
+        });
+    }
+
+    // Function to compare data and display results
+    function compareDataAndDisplayResults(savedData) {
+        // Extract data from the third attempt
+        const thirdAttemptData = {
+            timings: timings[2],
+            keyHoldTimes: keyHoldTimes[2],
+            dotTimings: dotTimings[1]
+        };
+        console.log('savedData:', savedData);
+        console.log('ThirdAttemptData:', thirdAttemptData);
+        // Combine savedData and thirdAttemptData for comparison
+
+        let newAllTimings = [];
+        let newAllKeyHoldTimes = [];
+        let newAllDotTimings = [];
+
+        // Iterate over savedDataArray to collect all timings
+        savedData.forEach(function (savedData) {
+            if (savedData.timings) {
+                newAllTimings = newAllTimings.concat(savedData.timings);
+            }
+            if (savedData.keyHoldTimes) {
+                newAllKeyHoldTimes = newAllKeyHoldTimes.concat(savedData.keyHoldTimes);
+            }
+            if (savedData.dotTimings) {
+                newAllDotTimings = newAllDotTimings.concat(savedData.dotTimings);
+            }
+        });
+
+        // Add the third attempt data
+        newAllTimings.push(thirdAttemptData.timings);
+        newAllKeyHoldTimes.push(thirdAttemptData.keyHoldTimes);
+        newAllDotTimings.push(thirdAttemptData.dotTimings);
+
+        const allTimings = newAllTimings.concat([thirdAttemptData.timings]);
+        const allKeyHoldTimes = newAllKeyHoldTimes.concat([thirdAttemptData.keyHoldTimes]);
+        const allDotTimings = newAllDotTimings.concat([thirdAttemptData.dotTimings]);
+
+        // Calculate matching scores
+        let typingMatch = compareMultipleAttempts(allTimings);
+        let keyHoldMatch = compareMultipleKeyHolds(allKeyHoldTimes);
+        let actionMatch = compareActions(allDotTimings);
+
+        let overallMatch = (typingMatch * 0.4) + (keyHoldMatch * 0.3) + (actionMatch * 0.3);
+
         $('#matchingPercent').text(overallMatch.toFixed(2));
         $('#resultSection').show();
 
-        // Prepare data to save
-        const testData = {
-            typingMatch: typingMatch,
-            actionMatch: actionMatch,
-            overallMatch: overallMatch,
-            timings: timings,
-            dotTimings: dotTimings,
-            shapeTimings: shapeTimings
-        };
-
-        // Save data to Firestore
-        //  saveDataToFirestore(testData);
+        // Optionally, you can send the final result to the server to save it
+        // saveFinalResultToServer(overallMatch);
     }
 
-
-    // Function to save data to Firebase
-    function saveDataToFirestore(data) {
-        const user = auth.currentUser;
-        if (user) {
-            const userId = user.uid;
-
-            // Destructure to exclude nested arrays
-            const { timings, dotTimings, shapeTimings, ...testData } = data;
-
-            // Add userId and timestamp to testData
-            testData.userId = userId;
-            testData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-            db.collection('tests').add(testData)
-                .then((docRef) => {
-                    // Save 'timings' as subcollection
-                    if (timings && timings.length > 0) {
-                        timings.forEach((attemptTimings, index) => {
-                            db.collection('tests').doc(docRef.id).collection('timings').add({
-                                attempt: index + 1,
-                                timings: attemptTimings
-                            });
-                        });
-                    }
-
-                    // Save 'dotTimings' as subcollection
-                    if (dotTimings && dotTimings.length > 0) {
-                        dotTimings.forEach((attemptDotTimings, index) => {
-                            db.collection('tests').doc(docRef.id).collection('dotTimings').add({
-                                attempt: index + 1,
-                                timings: attemptDotTimings
-                            });
-                        });
-                    }
-
-                    // Save 'shapeTimings' as subcollection
-                    if (shapeTimings && shapeTimings.length > 0) {
-                        shapeTimings.forEach((attemptShapeTimings, index) => {
-                            db.collection('tests').doc(docRef.id).collection('shapeTimings').add({
-                                attempt: index + 1,
-                                timings: attemptShapeTimings
-                            });
-                        });
-                    }
-
-                    console.log('Data saved successfully with ID:', docRef.id);
-                })
-                .catch((error) => {
-                    console.error('Error saving data:', error);
-                });
-        } else {
-            console.error('User not authenticated');
-            window.location.href = 'login.html';
-            // Optionally redirect to login page
-        }
-    }
-
-
-    // Function to compare multiple attempts
+    // Function to compare multiple attempts of key press intervals
     function compareMultipleAttempts(dataArray) {
         let totalScore = 0;
         let comparisons = 0;
@@ -353,38 +437,31 @@
         return averageScore;
     }
 
-    // Function to compare action patterns (dot timings and shape timings)
-    function compareActions() {
+    // Function to compare multiple attempts of key hold times
+    function compareMultipleKeyHolds(dataArray) {
+        let totalScore = 0;
+        let comparisons = 0;
+        for (let i = 0; i < dataArray.length - 1; i++) {
+            for (let j = i + 1; j < dataArray.length; j++) {
+                let durations1 = dataArray[i].map(item => item.duration);
+                let durations2 = dataArray[j].map(item => item.duration);
+                let score = comparePatterns(durations1, durations2);
+                totalScore += score;
+                comparisons++;
+            }
+        }
+        let averageScore = totalScore / comparisons;
+        return averageScore;
+    }
+
+    // Function to compare action patterns (dot timings)
+    function compareActions(dotTimingsArray) {
         let actionScores = [];
 
-        // Compare dot timings from attempts 1 and 3
-        if (dotTimings.length >= 2) {
-            let dotScore = comparePatterns(dotTimings[0], dotTimings[1]);
+        // Compare dot timings from previous attempts
+        if (dotTimingsArray.length >= 2) {
+            let dotScore = comparePatterns(dotTimingsArray[0], dotTimingsArray[1]);
             actionScores.push(dotScore);
-        }
-
-        // For shape selection in attempt 2, compute average reaction time and accuracy
-        if (shapeTimings.length > 0 && shapeTimings[0].length > 0) {
-            let totalReactionTime = 0;
-            let correctSelections = 0;
-            let totalSelections = shapeTimings[0].length;
-
-            shapeTimings[0].forEach(item => {
-                totalReactionTime += item.reactionTime;
-                if (item.isCorrect) {
-                    correctSelections++;
-                }
-            });
-
-            let avgReactionTime = totalReactionTime / totalSelections;
-            let accuracy = (correctSelections / totalSelections) * 100;
-
-            let maxReactionTime = 5000; // Max reaction time considered (in ms)
-            let reactionTimeScore = Math.max(0, (1 - (avgReactionTime / maxReactionTime)) * 100);
-
-            // We can weigh accuracy and reaction time equally
-            let shapeScore = (reactionTimeScore + accuracy) / 2;
-            actionScores.push(shapeScore);
         }
 
         // Calculate average action score

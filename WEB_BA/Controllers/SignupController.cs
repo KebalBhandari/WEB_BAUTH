@@ -35,7 +35,7 @@ namespace WEB_BA.Controllers
             {
                 if (model.Password.ToString() == model.ConfirmPassword.ToString())
                 {
-                    var idToken = await _firebaseService.RegisterWithEmailAndPasswordAsync(model.Email, model.Password);
+                    var idToken = await _firebaseService.RegisterWithEmailAndPasswordAsync(model.Email, model.Password, model.Username);
                     if (idToken is null)
                     {
                         TempData["msgtype"] = "info";
