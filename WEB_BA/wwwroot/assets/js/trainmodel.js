@@ -13,8 +13,8 @@
         "Big Fuji waves pitch enzymed kex liquor jugs."
     ];
 
-    const totalDots = 5; // Number of dots to click
-    const totalShapes = 5; // Number of shape selections
+    const totalDots = 15; // Number of dots to click
+    const totalShapes = 15; // Number of shape selections
     const totalAttempts = 3; // Number of attempts
     let currentAttempt = 1;
 
@@ -246,15 +246,15 @@
     });
 
     // Prevent copy, paste, and cut in the input field
-    //$('#inputText').on('copy paste cut', function (e) {
-    //    e.preventDefault();
-    //    alert('Copying and pasting are disabled. Please type the text manually.');
-    //});
+    $('#inputText').on('copy paste cut', function (e) {
+        e.preventDefault();
+        alert('Copying and pasting are disabled. Please type the text manually.');
+    });
 
-    //// Disable context menu (right-click) on the input field
-    //$('#inputText').on('contextmenu', function (e) {
-    //    e.preventDefault();
-    //});
+    // Disable context menu (right-click) on the input field
+    $('#inputText').on('contextmenu', function (e) {
+        e.preventDefault();
+    });
 
     // Next Attempt button functionality
     $('#nextAttempt').click(function () {
