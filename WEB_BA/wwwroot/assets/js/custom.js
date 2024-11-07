@@ -79,7 +79,7 @@ async function AjaxCall(url, data) {
         async: true,
         beforeSend: function () {
             Swal.fire({
-                html: '<div class="loader" id="loader-7">' +
+                html: '<div class="loader" id="loader-6">' +
                     '<span></span>' +
                     '<span></span>' +
                     '<span></span>' +
@@ -106,7 +106,7 @@ async function AjaxCall(url, data) {
             Swal.close();
         },
         error: function (error) {
-            alert("Error:" + error);
+            AlertTost("error", error);
             Swal.close();    
         }
     });
@@ -160,7 +160,7 @@ async function AjaxCallNoReturn(url, data) {
             Swal.close();
         },
         error: function (error) {
-            alert("Error:" + error);
+            AlertTost("error", error);
             Swal.close();
         }
     });
@@ -169,7 +169,7 @@ async function AjaxCallNoReturn(url, data) {
 async function AjaxCallWithoutData(url) {
     var result;
     await $.ajax({
-        type: "Post",
+        type: "Get",
         url: url,
         dataType: "Text",
         cache: false,
@@ -178,7 +178,7 @@ async function AjaxCallWithoutData(url) {
         contentType: "application/json;charset=utf-8",
         beforeSend: function () {
             Swal.fire({
-                html: '<div class="loader" id="loader-7">' +
+                html: '<div class="loader" id="loader-6">' +
                     '<span></span>' +
                     '<span></span>' +
                     '<span></span>' +
@@ -205,7 +205,7 @@ async function AjaxCallWithoutData(url) {
             Swal.close();
         },
         error: function (error) {
-            alert("Error:" + error);
+            AlertTost("error", error);
             Swal.close();
         }
     });

@@ -13,8 +13,8 @@
         "Big Fuji waves pitch enzymed kex liquor jugs."
     ];
 
-    const totalDots = 15; // Number of dots to click
-    const totalShapes = 15; // Number of shape selections
+    const totalDots = 2; // Number of dots to click
+    const totalShapes = 2; // Number of shape selections
     const totalAttempts = 3; // Number of attempts
     let currentAttempt = 1;
 
@@ -246,18 +246,18 @@
     });
 
     // Prevent copy, paste, and cut in the input field
-    $('#inputText').on('copy paste cut', function (e) {
-        e.preventDefault();
-        alert('Copying and pasting are disabled. Please type the text manually.');
-    });
+    //$('#inputText').on('copy paste cut', function (e) {
+    //    e.preventDefault();
+    //    alert('Copying and pasting are disabled. Please type the text manually.');
+    //});
 
-    // Disable context menu (right-click) on the input field
-    $('#inputText').on('contextmenu', function (e) {
-        e.preventDefault();
-    });
+    //// Disable context menu (right-click) on the input field
+    //$('#inputText').on('contextmenu', function (e) {
+    //    e.preventDefault();
+    //});
 
     // Next Attempt button functionality
-    $('#nextAttempt').click(function () {
+    $('#nextAttempt').click(async function () {
         const userInput = $('#inputText').val().trim();
         if (userInput === '') {
             alert('Please type the text before proceeding.');
@@ -315,7 +315,7 @@
 
             // After the second attempt, send data to the server
             if (currentAttempt === 3) {
-                saveDataToServer();
+                await saveDataToServer();
             }
         } else {
             // All attempts completed, proceed to results
@@ -326,7 +326,7 @@
     });
 
     // Function to send data to the server after the second attempt
-    function saveDataToServer() {
+    async function saveDataToServer() {
         const dataToSend = {
             timings: timings.slice(0, 2), // First two attempts
             keyHoldTimes: keyHoldTimes.slice(0, 2),
@@ -335,43 +335,37 @@
             shapeMouseMovements: shapeMouseMovements
         };
 
-        // Verify that keys are not included
-        console.log('Data being sent to server:', dataToSend);
-
-        $.ajax({
-            url: '/TrainModel/SaveUserData',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(dataToSend),
-            success: function (response) {
-                console.log('Data saved successfully.');
-            },
-            error: function (xhr, status, error) {
-                console.error('Error saving data:', error);
-                alert('An error occurred while saving your data. Please try again.');
-            }
-        });
+        var response = await AjaxCall("/TrainModel/SaveUserData",dataToSend);
+        if (response != "") {
+            AlertTost("success", "Data Saved Successfully");
+        }
+        else {
+            AlertTost("error", "Try Again!!!");
+        }
     }
 
     // Function to fetch data from the server after the third attempt
-    function fetchDataAndCalculateResults() {
-        $.ajax({
-            url: '/TrainModel/GetUserData',
-            type: 'GET',
-            contentType: 'application/json',
-            success: function (savedData) {
-                // Compare the saved data with the data from the third attempt
-                compareDataAndDisplayResults(savedData);
-            },
-            error: function (xhr, status, error) {
-                console.error('Error fetching data:', error);
-                alert('An error occurred while fetching your data. Please try again.');
+    async function fetchDataAndCalculateResults() {
+        var savedData = await AjaxCallWithoutData("/TrainModel/GetUserData");
+        if (savedData != "") {
+            // Parse JSON if necessary
+            if (typeof savedData === "string") {
+                savedData = JSON.parse(savedData);
             }
-        });
+
+            if (Array.isArray(savedData)) {
+                await compareDataAndDisplayResults(savedData);
+            } else {
+                console.error("Error: Expected an array, but received:", savedData);
+            }
+        }
+        else {
+            AlertTost("Info", "Try Again!!!");
+        }
     }
 
     // Function to compare data and display results
-    function compareDataAndDisplayResults(savedData) {
+    async function compareDataAndDisplayResults(savedData) {
         // Extract data from the third attempt
         const thirdAttemptData = {
             timings: timings[2],
@@ -387,7 +381,7 @@
         let newAllDotTimings = [];
 
         // Iterate over savedDataArray to collect all timings
-        savedData.forEach(function (savedData) {
+        savedData.forEach(async function (savedData) {
             if (savedData.timings) {
                 newAllTimings = newAllTimings.concat(savedData.timings);
             }
@@ -409,9 +403,9 @@
         const allDotTimings = newAllDotTimings.concat([thirdAttemptData.dotTimings]);
 
         // Calculate matching scores
-        let typingMatch = compareMultipleAttempts(allTimings);
-        let keyHoldMatch = compareMultipleKeyHolds(allKeyHoldTimes);
-        let actionMatch = compareActions(allDotTimings);
+        let typingMatch = await compareMultipleAttempts(allTimings);
+        let keyHoldMatch = await compareMultipleKeyHolds(allKeyHoldTimes);
+        let actionMatch = await compareActions(allDotTimings);
 
         let overallMatch = (typingMatch * 0.4) + (keyHoldMatch * 0.3) + (actionMatch * 0.3);
 
@@ -423,12 +417,12 @@
     }
 
     // Function to compare multiple attempts of key press intervals
-    function compareMultipleAttempts(dataArray) {
+    async function compareMultipleAttempts(dataArray) {
         let totalScore = 0;
         let comparisons = 0;
         for (let i = 0; i < dataArray.length - 1; i++) {
             for (let j = i + 1; j < dataArray.length; j++) {
-                let score = comparePatterns(dataArray[i], dataArray[j]);
+                let score = await comparePatterns(dataArray[i], dataArray[j]);
                 totalScore += score;
                 comparisons++;
             }
@@ -438,14 +432,14 @@
     }
 
     // Function to compare multiple attempts of key hold times
-    function compareMultipleKeyHolds(dataArray) {
+    async function compareMultipleKeyHolds(dataArray) {
         let totalScore = 0;
         let comparisons = 0;
         for (let i = 0; i < dataArray.length - 1; i++) {
             for (let j = i + 1; j < dataArray.length; j++) {
                 let durations1 = dataArray[i].map(item => item.duration);
                 let durations2 = dataArray[j].map(item => item.duration);
-                let score = comparePatterns(durations1, durations2);
+                let score = await comparePatterns(durations1, durations2);
                 totalScore += score;
                 comparisons++;
             }
@@ -455,12 +449,12 @@
     }
 
     // Function to compare action patterns (dot timings)
-    function compareActions(dotTimingsArray) {
+    async function compareActions(dotTimingsArray) {
         let actionScores = [];
 
         // Compare dot timings from previous attempts
         if (dotTimingsArray.length >= 2) {
-            let dotScore = comparePatterns(dotTimingsArray[0], dotTimingsArray[1]);
+            let dotScore = await comparePatterns(dotTimingsArray[0], dotTimingsArray[1]);
             actionScores.push(dotScore);
         }
 
@@ -471,7 +465,7 @@
     }
 
     // Function to compare patterns
-    function comparePatterns(t1, t2) {
+    async function comparePatterns(t1, t2) {
         let minLength = Math.min(t1.length, t2.length);
         let diffTotal = 0;
         let maxInterval = 1000; // Max interval considered (in ms)

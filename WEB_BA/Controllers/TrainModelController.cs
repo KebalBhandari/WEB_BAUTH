@@ -25,6 +25,15 @@ namespace WEB_BA.Controllers
                 }
                 else
                 {
+                    var UserName = HttpContext.Session.GetString("UserName");
+                    if (UserName == "")
+                    {
+                        TempData["UserName"] = "Welcome";
+                    }
+                    else
+                    {
+                        TempData["UserName"] = UserName;
+                    }
                     ViewBag.msgtype = "";
                     ViewBag.message = "";
                     return View();
