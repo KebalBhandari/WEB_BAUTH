@@ -15,7 +15,7 @@
 
     const totalDots = 2; // Number of dots to click
     const totalShapes = 2; // Number of shape selections
-    const totalAttempts = 3; // Number of attempts
+    const totalAttempts = 3;
     let currentAttempt = 1;
 
     let timings = []; // Time between key presses for all attempts
