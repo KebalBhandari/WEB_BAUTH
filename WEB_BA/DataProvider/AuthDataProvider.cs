@@ -42,6 +42,36 @@ namespace WEB_BA.DataProvider
             return ("ERROR", "No response from stored procedure", "NULL");
         }
 
+        public async Task<(string Status, string Message)> SelfCreateUser(string username, string email, string password)
+        {
+            var parameters = new SqlParameter[]
+            {
+            new SqlParameter("@Email", email),
+            new SqlParameter("@Password", password),
+            new SqlParameter("@Username", username),
+            new SqlParameter("@RoleName", "Guest"),
+            new SqlParameter("@CreatedByUserId", 0)
+            };
+
+            DataTable dt = await _dataHandler.ExecuteStoredProcedureAsync("sp_SelfCreatedUser", parameters);
+
+            if (dt.Rows.Count > 0)
+            {
+                string? status = dt.Rows[0]["Status"]?.ToString();
+                string? message = dt.Rows[0]["Message"]?.ToString();
+                if (status == null || message == null)
+                {
+                    return ("ERROR", "No response from stored procedure");
+                }
+                else
+                {
+                    return (status, message);
+                }
+            }
+
+            return ("ERROR", "No response from stored procedure");
+        }
+
         public async Task<bool> InvalidateSessionAsync(string refreshToken)
         {
             var parameters = new SqlParameter[]

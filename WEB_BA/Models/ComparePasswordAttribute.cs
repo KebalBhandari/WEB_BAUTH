@@ -12,7 +12,7 @@ namespace WEB_BA.Models
             _comparisonProperty = comparisonProperty;
         }
 
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             var currentValue = value?.ToString();
             var property = validationContext.ObjectType.GetProperty(_comparisonProperty);
