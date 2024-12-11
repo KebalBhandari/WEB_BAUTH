@@ -254,7 +254,7 @@
     //// Disable context menu (right-click) on the input field
     //$('#inputText').on('contextmenu', function (e) {
     //    e.preventDefault();
-    //});
+    //});s
 
     // Next Attempt button functionality
     $('#nextAttempt').click(async function () {
