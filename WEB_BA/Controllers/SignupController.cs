@@ -8,12 +8,6 @@ namespace WEB_BA.Controllers
 {
     public class SignupController : Controller
     {
-        //private readonly FirebaseService _firebaseService;
-
-        //public SignupController(FirebaseService firebaseService)
-        //{
-        //    _firebaseService = firebaseService;
-        //}
 
         private readonly IConfiguration _configuration;
 
