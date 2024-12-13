@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using WEB_BA.DataProvider;
 using WEB_BA.Models;
-using WEB_BA.Services;
 
 namespace WEB_BA.Controllers
 {
@@ -39,23 +39,43 @@ namespace WEB_BA.Controllers
             {
                 if (model.Password.ToString() == model.ConfirmPassword.ToString())
                 {
-                    var authProvider = new AuthDataProvider(_configuration);
-                    var (status, message) = await authProvider.SelfCreateUser(
-                        model.Username,
-                        model.Email,
-                        model.Password
-                    );
-
-                    if (status == "SUCCESS")
+                    var url = "api/Auth/Register";
+                    var payload = new
                     {
-                        TempData["msgtype"] = "LoginSuccess";
-                        TempData["message"] = "User Created Successfully !!!";
-                        return RedirectToAction("Index", "Login");
+                        Username = model.Username,
+                        Email = model.Email,
+                        Password = model.Password
+                    };
+
+                    string response = await ApiCall.ApiCallWithObject(url, payload, "Post");
+
+                    if (!string.IsNullOrEmpty(response) && response != "Null")
+                    {
+                        dynamic jsonResponse = JsonConvert.DeserializeObject(response);
+
+                        if (jsonResponse != null && jsonResponse?.status == "SUCCESS")
+                        {
+                            TempData["msgtype"] = "LoginSuccess";
+                            TempData["message"] = "User Created Successfully !!!";
+                            return RedirectToAction("Index", "Login");
+                        }
+                        else if (jsonResponse != null)
+                        {
+                            TempData["msgtype"] = "info";
+                            TempData["message"] = jsonResponse.Message;
+                            return View(model);
+                        }
+                        else
+                        {
+                            TempData["msgtype"] = "error";
+                            TempData["message"] = "Unexpected error occurred while processing the response.";
+                            return View(model);
+                        }
                     }
                     else
                     {
-                        TempData["msgtype"] = "info";
-                        TempData["message"] = message;
+                        TempData["msgtype"] = "error";
+                        TempData["message"] = "Error connecting to the registration service.";
                         return View(model);
                     }
                 }
@@ -81,55 +101,5 @@ namespace WEB_BA.Controllers
             }
         }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Index(SignUpModel model)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        TempData["msgtype"] = "error";
-        //        TempData["message"] = "Please correct the errors and try again.";
-        //        return View(model);
-        //    }
-        //    try
-        //    {
-        //        if (model.Password.ToString() == model.ConfirmPassword.ToString())
-        //        {
-        //            var idToken = await _firebaseService.RegisterWithEmailAndPasswordAsync(model.Email, model.Password, model.Username);
-        //            if (idToken is null)
-        //            {
-        //                TempData["msgtype"] = "info";
-        //                TempData["message"] = "SignUp Failed, Try Again !!!";
-        //                return View();
-        //            }
-        //            else
-        //            {
-        //                HttpContext.Session.SetString("TokenNo", idToken);
-        //                TempData["msgtype"] = "LoginSuccess";
-        //                TempData["message"] = "User Created Successfully !!!";
-        //                return RedirectToAction("Index", "Login");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            TempData["msgtype"] = "info";
-        //            TempData["message"] = "Password Doesnt Match !!!";
-        //            return View();
-        //        }
-
-        //    }
-        //    catch (FirebaseAuthenticationException ex)
-        //    {
-        //        TempData["msgtype"] = "info";
-        //        TempData["message"] = ex.FirebaseMessage;
-        //        return View();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["msgtype"] = "info";
-        //        TempData["message"] = ex.ToString();
-        //        return View();
-        //    }
-        //}
     }
 }

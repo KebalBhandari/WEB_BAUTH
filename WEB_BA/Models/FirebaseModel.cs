@@ -6,15 +6,15 @@ namespace WEB_BA.Models
     [FirestoreData]
     public class UserDataModel
     {
-        public List<List<double>>? Timings { get; set; }
+        public List<List<double>> Timings { get; set; }
 
-        public List<List<KeyHoldTime>>? KeyHoldTimes { get; set; }
+        public List<List<KeyHoldTime>> KeyHoldTimes { get; set; }
 
-        public List<List<double>>? DotTimings { get; set; }
+        public List<List<double>> DotTimings { get; set; }
 
-        public List<List<ShapeTiming>>? ShapeTimings { get; set; }
+        public List<List<ShapeTiming>> ShapeTimings { get; set; }
 
-        public List<List<MouseMovement>>? ShapeMouseMovements { get; set; }
+        public List<List<MouseMovement>> ShapeMouseMovements { get; set; }
 
     }
 
@@ -23,30 +23,30 @@ namespace WEB_BA.Models
     {
 
         [FirestoreProperty("duration")]
-        public double? Duration { get; set; }
+        public double Duration { get; set; }
     }
 
     [FirestoreData]
     public class ShapeTiming
     {
         [FirestoreProperty("reactionTime")]
-        public double? ReactionTime { get; set; }
+        public double ReactionTime { get; set; }
 
         [FirestoreProperty("isCorrect")]
-        public int? IsCorrect { get; set; }
+        public int IsCorrect { get; set; }
     }
 
     [FirestoreData]
     public class MouseMovement
     {
         [FirestoreProperty("time")]
-        public double? Time { get; set; }
+        public double Time { get; set; }
 
         [FirestoreProperty("x")]
-        public double? X { get; set; }
+        public double X { get; set; }
 
         [FirestoreProperty("y")]
-        public double? Y { get; set; }
+        public double Y { get; set; }
     }
 
 }

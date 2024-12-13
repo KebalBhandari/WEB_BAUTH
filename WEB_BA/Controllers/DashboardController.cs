@@ -9,7 +9,7 @@ namespace WEB_BA.Controllers
         {
             try
             {
-                string? session = HttpContext.Session.GetString("TokenNo");
+                string session = HttpContext.Session.GetString("TokenNo");
                 if (session == null || session == "")
                 {
                     return RedirectToAction("Index", "SessionExpired");

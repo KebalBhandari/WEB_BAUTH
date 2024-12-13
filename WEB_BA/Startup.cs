@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using WEB_BA.Services;
+using WEB_BA.Controllers;
 
 namespace WEB_BA
 {
     public class Startup
     {
+        public static string baseApiUrl = "https://localhost:7244";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -18,6 +17,7 @@ namespace WEB_BA
         {
             services.AddDistributedMemoryCache();
             services.AddRazorPages();
+            services.AddScoped<LoginController>();
             services.AddControllersWithViews()
                 .AddRazorRuntimeCompilation()
                 .AddViewOptions(options =>
@@ -25,7 +25,6 @@ namespace WEB_BA
                     options.HtmlHelperOptions.ClientValidationEnabled = true;
                 });
 
-            services.AddHttpClient<FirebaseService>();
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(10);

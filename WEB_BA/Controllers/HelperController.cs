@@ -1,20 +1,19 @@
-﻿using Google.Api.Gax.Grpc;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WEB_BA.DataProvider;
-using static WEB_BA.Models.FirebaseErrorResponse;
+using WEB_BA.Models;
 
 namespace WEB_BA.Controllers
 {
     public class HelperController : Controller
     {
-        private readonly IConfiguration _configuration;
+        private readonly LoginController _loginController;
 
-        public HelperController(IConfiguration configuration)
+        public HelperController(LoginController loginController)
         {
-            _configuration = configuration;
+            _loginController = loginController;
         }
 
         [HttpPost]
@@ -22,39 +21,88 @@ namespace WEB_BA.Controllers
         {
             try
             {
-                string? TokenNo = HttpContext.Session.GetString("TokenNo");
-                if (TokenNo == null || TokenNo == "")
+                string TokenNo = HttpContext.Session.GetString("TokenNo");
+                string JWToken = HttpContext.Session.GetString("JWToken");
+                string JWTRefreshToken = HttpContext.Session.GetString("JWTRefreshToken");
+
+                // Get the access token from session
+                if (string.IsNullOrEmpty(JWToken)) throw new Exception("No access token available");
+
+                // Check if token is expiring
+                if (_loginController.IsTokenExpiringSoon(JWToken))
+                {
+                    var payload = new { Token = JWTRefreshToken, Username = TokenNo };
+                    string response = await ApiCall.ApiCallWithObject("/api/Auth/RefreshToken", payload, "POST");
+                    dynamic jsonResponse = JsonConvert.DeserializeObject(response);
+
+                    if (jsonResponse != null)
+                    {
+                        if (jsonResponse.status == "SUCCESS")
+                        {
+                            if (!string.IsNullOrEmpty((string)jsonResponse.jwtRefreshToken))
+                                HttpContext.Session.SetString("JWTRefreshToken", (string)jsonResponse.jwtRefreshToken);
+                            if (!string.IsNullOrEmpty((string)jsonResponse.jwtToken))
+                                HttpContext.Session.SetString("JWToken", (string)jsonResponse.jwtToken);
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(TokenNo))
                 {
                     return RedirectToAction("Index", "SessionExpired");
                 }
                 else
                 {
-                    // Invalidate the session in the DB if we have a refresh token
-                    if (!string.IsNullOrEmpty(TokenNo))
-                    {
-                        var authProvider = new AuthDataProvider(_configuration);
-                        bool invalidated = await authProvider.InvalidateSessionAsync(TokenNo);
-                        if(invalidated == true)
-                        {
-                            await HttpContext.SignOutAsync();
-                            HttpContext.Session.Remove("TokenNo");
-                            HttpContext.Session.Clear();
+                    string JWTRefreshTokenNew = HttpContext.Session.GetString("JWTRefreshToken");
+                    string UserEmail = HttpContext.Session.GetString("UserEmail");
 
-                            // Double check that TokenNo is cleared
-                            TokenNo = HttpContext.Session.GetString("TokenNo");
-                            if (TokenNo == null)
+                    var url = "api/Auth/InvalidateSession";
+                    var payload = new { RefreshToken = TokenNo, Token = JWTRefreshTokenNew , Email = UserEmail };
+
+                    string response = await ApiCall.JWTApiCallWithObject(url, payload, "Post", JWToken);
+
+                    if (!string.IsNullOrEmpty(response) && response != "Null")
+                    {
+                        dynamic jsonResponse = JsonConvert.DeserializeObject(response);
+                        if (jsonResponse != null)
+                        {
+
+                            if (jsonResponse.status == "SUCCESS")
                             {
-                                return Ok(1);
+                                await HttpContext.SignOutAsync();
+                                HttpContext.Session.Remove("TokenNo");
+                                HttpContext.Session.Remove("JWToken");
+                                HttpContext.Session.Remove("JWTRefreshToken");
+                                HttpContext.Session.Clear();
+
+                                TokenNo = HttpContext.Session.GetString("TokenNo");
+                                if (TokenNo == null)
+                                {
+                                    return Ok(1);
+                                }
+                                else
+                                {
+                                    return Ok(0);
+                                }
                             }
                             else
                             {
-                                return Ok(0);
+                                await HttpContext.SignOutAsync();
+                                HttpContext.Session.Remove("TokenNo");
+                                HttpContext.Session.Remove("JWToken");
+                                HttpContext.Session.Remove("JWTRefreshToken");
+                                TempData["msgtype"] = "ERROR";
+                                TempData["message"] = "Force Redirecting to Login";
+                                return RedirectToAction("Index", "Login");
                             }
                         }
                         else
                         {
                             TempData["msgtype"] = "ERROR";
-                            TempData["message"] = "Force Redirecting to Login";
+                            HttpContext.Session.Remove("TokenNo");
+                            HttpContext.Session.Remove("JWToken");
+                            HttpContext.Session.Remove("JWTRefreshToken");
+                            TempData["message"] = "Error invalidating session.";
                             return RedirectToAction("Index", "Login");
                         }
                     }
@@ -62,28 +110,21 @@ namespace WEB_BA.Controllers
                     {
                         await HttpContext.SignOutAsync();
                         HttpContext.Session.Remove("TokenNo");
-                        HttpContext.Session.Clear();
-
-                        // Double check that TokenNo is cleared
-                        TokenNo = HttpContext.Session.GetString("TokenNo");
-                        if (TokenNo == null)
-                        {
-                            return Ok(1);
-                        }
-                        else
-                        {
-                            return Ok(0);
-                        }
+                        HttpContext.Session.Remove("JWToken");
+                        HttpContext.Session.Remove("JWTRefreshToken");
+                        TempData["msgtype"] = "ERROR";
+                        TempData["message"] = "Error invalidating session.";
+                        return RedirectToAction("Index", "Login");
                     }
-                    
                 }
             }
             catch (Exception ex)
             {
-                string Exception = ex.ToString();
-                TempData["Exception"] = Exception;
+                string exception = ex.ToString();
+                TempData["Exception"] = exception;
                 return RedirectToAction("Index", "UnexpectedError");
             }
         }
+
     }
 }
