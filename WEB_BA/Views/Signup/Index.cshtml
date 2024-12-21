@@ -72,6 +72,7 @@
                                     </div>
                                 <div class="mb-3 text-center">
                                     <button id="condition_button" class="btn btn-primary">
+                                        <i class="uil-sign-out-alt"></i>
                                         <span class="indicator-label">Sign Up</span>
                                         <span class="indicator-progress">
                                             Please wait...
@@ -121,6 +122,28 @@
                 }
             });
 
+            document.addEventListener("DOMContentLoaded", function () {
+            const passwordField = document.getElementById("Password");
+            const validationSpan = document.querySelector("span[asp-validation-for='Password']");
+            const submitButton = document.getElementById("condition_button");
+
+            // Function to check validation state and update button
+            function updateButtonState() {
+                if (validationSpan && validationSpan.innerHTML.trim() !== "") {
+                     $('.indicator-label').hide();
+                    submitButton.disabled = true; // Disable button if validation message is visible
+                } else {
+                    submitButton.disabled = false; // Enable button otherwise
+                }
+            }
+
+            // Attach event listeners to detect changes
+            passwordField.addEventListener("input", updateButtonState);
+
+            // Initial check
+            updateButtonState();
+        });
+
             $('#condition_button').click(function () {
             if ($('#Username').val() == "") {
                 AlertTost('error', 'Username is required !!!');
@@ -135,6 +158,7 @@
                 AlertTost('error', 'Confirm your Password !!!');
             }
             else {
+                $('.uil-sign-out-alt"').hide();
                 $('.indicator-label').hide();
                 $('.indicator-progress').show();
                 $('#RequestSignUp').submit();

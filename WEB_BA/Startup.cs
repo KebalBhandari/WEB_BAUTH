@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using WEB_BA.Controllers;
 
 namespace WEB_BA
@@ -30,13 +32,29 @@ namespace WEB_BA
                 options.IdleTimeout = TimeSpan.FromMinutes(10);
             });
 
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
-                    options.SlidingExpiration = true; 
-                    options.LoginPath = "/SessionExpired";
-                });
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.LoginPath = "/Login";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+                options.SlidingExpiration = true;
+            })
+            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+            {
+                options.Authority = "http://localhost:8080/realms/DTI";
+                options.ClientId = "web-security";
+                options.ClientSecret = "EJEwdtKOACzW1EWjSKnK6eikH1HJg07G";
+                options.ResponseType = OpenIdConnectResponseType.Code;
+                options.SaveTokens = true;
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.RequireHttpsMetadata = false;
+                options.CallbackPath = "/signin-oidc";
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -51,15 +69,12 @@ namespace WEB_BA
 
             if (env.IsDevelopment())
             {
-                app.UseExceptionHandler("/ExceptionError");
-            }
-            else if (env.IsProduction())
-            {
-                app.UseExceptionHandler("/ExceptionError");
+                app.UseDeveloperExceptionPage();
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
             }
 
             app.Use(async (context, next) =>

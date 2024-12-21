@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Text;
@@ -9,7 +12,6 @@ namespace WEB_BA.Controllers
 {
     public class LoginController : Controller
     {
-
         private readonly IConfiguration _configuration;
 
         public LoginController(IConfiguration configuration)
@@ -112,6 +114,69 @@ namespace WEB_BA.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult ExternalLogin()
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Login");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExternalLoginCallback()
+        {
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (result.Succeeded)
+            {
+                // Extract claims
+                var claims = result.Principal?.Claims;
+                if (claims != null)
+                {
+                    // Extract specific claims
+                    var emailClaim = claims.FirstOrDefault(c => c.Type == "email");
+                    var firstNameClaim = claims.FirstOrDefault(c => c.Type == "given_name");
+                    var lastNameClaim = claims.FirstOrDefault(c => c.Type == "family_name");
+                    var uniqueIdClaim = claims.FirstOrDefault(c => c.Type == "sub");
+                    var roleClaim = claims.FirstOrDefault(c => c.Type == "role");
+
+                    // Store necessary information in session
+                    if (emailClaim != null)
+                    {
+                        HttpContext.Session.SetString("UserEmail", emailClaim.Value);
+                    }
+
+                    if (firstNameClaim != null && lastNameClaim != null)
+                    {
+                        HttpContext.Session.SetString("FullName", $"{firstNameClaim.Value} {lastNameClaim.Value}");
+                    }
+
+                    if (uniqueIdClaim != null)
+                    {
+                        HttpContext.Session.SetString("UserUniqueId", uniqueIdClaim.Value);
+                    }
+
+                    if (roleClaim != null)
+                    {
+                        HttpContext.Session.SetString("UserRole", roleClaim.Value);
+                    }
+
+                    // Log or process each claim as needed
+                    foreach (var claim in claims)
+                    {
+                        Console.WriteLine($"{claim.Type}: {claim.Value}");
+                    }
+                }
+
+                // Redirect to dashboard
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+            // Handle failed login
+            TempData["msgtype"] = "error";
+            TempData["message"] = "External login failed.";
+            return RedirectToAction("Index");
+        }
+
         public bool IsTokenExpiringSoon(string token)
         {
             try
@@ -143,6 +208,3 @@ namespace WEB_BA.Controllers
         }
     }
 }
-
-
-
