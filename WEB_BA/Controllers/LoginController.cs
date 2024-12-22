@@ -7,6 +7,11 @@ using Newtonsoft.Json;
 using System.Text;
 using WEB_BA.DataProvider;
 using WEB_BA.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text.Json;
+using System;
+using System.Net;
 
 namespace WEB_BA.Controllers
 {
@@ -125,56 +130,110 @@ namespace WEB_BA.Controllers
         [HttpGet]
         public async Task<IActionResult> ExternalLoginCallback()
         {
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            if (result.Succeeded)
+            var keyCloakAuth = new KeyCloakAuthModel();
+            var url = "api/Auth/LoginOAuth";
+            var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (authResult?.Succeeded != true)
             {
-                // Extract claims
-                var claims = result.Principal?.Claims;
-                if (claims != null)
+                TempData["msgtype"] = "error";
+                TempData["message"] = "External login failed.";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                var accessToken = authResult.Properties.GetTokenValue("access_token");
+                var refreshToken = authResult.Properties.GetTokenValue("refresh_token");
+
+                // Save the tokens to the user's session or database
+                HttpContext.Session.SetString("access_token", accessToken);
+                HttpContext.Session.SetString("refresh_token", refreshToken);
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+
+                try
                 {
-                    // Extract specific claims
-                    var emailClaim = claims.FirstOrDefault(c => c.Type == "email");
-                    var firstNameClaim = claims.FirstOrDefault(c => c.Type == "given_name");
-                    var lastNameClaim = claims.FirstOrDefault(c => c.Type == "family_name");
-                    var uniqueIdClaim = claims.FirstOrDefault(c => c.Type == "sub");
-                    var roleClaim = claims.FirstOrDefault(c => c.Type == "role");
+                    JwtSecurityToken jwtToken = tokenHandler.ReadJwtToken(accessToken);
+                    string username = jwtToken.Claims
+                        .FirstOrDefault(c => c.Type == "preferred_username")?.Value;
+                    string userId = jwtToken.Claims
+                        .FirstOrDefault(c => c.Type == "sub")?.Value
+                        ?? jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-                    // Store necessary information in session
-                    if (emailClaim != null)
+                    string email = jwtToken.Claims
+                        .FirstOrDefault(c => c.Type == "email")?.Value;
+
+                    string fullName = jwtToken.Claims
+                        .FirstOrDefault(c => c.Type == "name")?.Value;
+                    keyCloakAuth.Username = fullName;
+                    keyCloakAuth.Email = email;
+                    keyCloakAuth.UserId = userId;
+                    keyCloakAuth.TokenNo = accessToken;
+                    keyCloakAuth.IpAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+                    keyCloakAuth.UserAgent = Request.Headers["User-Agent"].ToString();
+
+                    string realmAccessJson = jwtToken.Claims
+                        .FirstOrDefault(c => c.Type == "realm_access")?.Value;
+
+                    if (!string.IsNullOrEmpty(realmAccessJson))
                     {
-                        HttpContext.Session.SetString("UserEmail", emailClaim.Value);
+                        using JsonDocument doc = JsonDocument.Parse(realmAccessJson);
+                        var rolesArray = doc.RootElement.GetProperty("roles");
+                        var realmRoles = rolesArray.EnumerateArray()
+                            .Select(r => r.GetString())
+                            .Where(s => !string.IsNullOrEmpty(s))
+                            .ToList();
+
+                        keyCloakAuth.Roles.AddRange(realmRoles);
                     }
 
-                    if (firstNameClaim != null && lastNameClaim != null)
+                    string response = await ApiCall.ApiCallWithObject(url, keyCloakAuth, "Post");
+                    if (response != null && response != "Null")
                     {
-                        HttpContext.Session.SetString("FullName", $"{firstNameClaim.Value} {lastNameClaim.Value}");
-                    }
+                        dynamic jsonResponse = JsonConvert.DeserializeObject(response);
+                        if (jsonResponse != null)
+                        {
+                            if (jsonResponse.status == "SUCCESS")
+                            {
+                                HttpContext.Session.SetString("UserEmail", keyCloakAuth.Email);
+                                if (!string.IsNullOrEmpty((string)jsonResponse.refreshToken))
+                                    HttpContext.Session.SetString("TokenNo", (string)jsonResponse.refreshToken);
+                                if (!string.IsNullOrEmpty((string)jsonResponse.jwtToken))
+                                    HttpContext.Session.SetString("JWToken", (string)jsonResponse.jwtToken);
+                                if (!string.IsNullOrEmpty((string)jsonResponse.jwtRefreshToken))
+                                    HttpContext.Session.SetString("JWTRefreshToken", (string)jsonResponse.jwtRefreshToken);
 
-                    if (uniqueIdClaim != null)
-                    {
-                        HttpContext.Session.SetString("UserUniqueId", uniqueIdClaim.Value);
+                                TempData["msgtype"] = "LoginSuccess";
+                                TempData["message"] = (string)jsonResponse.Message;
+                                return RedirectToAction("Index", "Dashboard");
+                            }
+                            else
+                            {
+                                TempData["msgtype"] = "info";
+                                TempData["message"] = (string)jsonResponse.Message;
+                                return View();
+                            }
+                        }
+                        else
+                        {
+                            TempData["msgtype"] = "info";
+                            TempData["message"] = "Error connecting to the authentication service.";
+                            return View();
+                        }
                     }
-
-                    if (roleClaim != null)
+                    else
                     {
-                        HttpContext.Session.SetString("UserRole", roleClaim.Value);
-                    }
-
-                    // Log or process each claim as needed
-                    foreach (var claim in claims)
-                    {
-                        Console.WriteLine($"{claim.Type}: {claim.Value}");
+                        TempData["msgtype"] = "info";
+                        TempData["message"] = "Error connecting to the authentication service.";
+                        return View();
                     }
                 }
-
-                // Redirect to dashboard
-                return RedirectToAction("Index", "Dashboard");
+                catch (Exception)
+                {
+                    TempData["msgtype"] = "info";
+                    TempData["message"] = "Error parsing token";
+                    return View();
+                }
             }
-
-            // Handle failed login
-            TempData["msgtype"] = "error";
-            TempData["message"] = "External login failed.";
-            return RedirectToAction("Index");
         }
 
         public bool IsTokenExpiringSoon(string token)
@@ -200,7 +259,6 @@ namespace WEB_BA.Controllers
             }
             catch
             {
-                // If decoding fails, assume the token is invalid or expiring
                 return true;
             }
 

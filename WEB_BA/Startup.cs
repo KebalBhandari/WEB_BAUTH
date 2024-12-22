@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using WEB_BA.Controllers;
 
 namespace WEB_BA
@@ -54,6 +55,12 @@ namespace WEB_BA
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.RequireHttpsMetadata = false;
                 options.CallbackPath = "/signin-oidc";
+                options.SignedOutCallbackPath = "/Helper/Logout";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = "preferred_username",
+                    RoleClaimType = "roles"
+                };
             });
         }
 

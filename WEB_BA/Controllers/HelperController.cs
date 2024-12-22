@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -49,6 +51,8 @@ namespace WEB_BA.Controllers
 
                 if (string.IsNullOrEmpty(TokenNo))
                 {
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                     return RedirectToAction("Index", "SessionExpired");
                 }
                 else
@@ -78,6 +82,8 @@ namespace WEB_BA.Controllers
                                 TokenNo = HttpContext.Session.GetString("TokenNo");
                                 if (TokenNo == null)
                                 {
+                                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                                    await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                                     return Ok(1);
                                 }
                                 else
@@ -91,6 +97,8 @@ namespace WEB_BA.Controllers
                                 HttpContext.Session.Remove("TokenNo");
                                 HttpContext.Session.Remove("JWToken");
                                 HttpContext.Session.Remove("JWTRefreshToken");
+                                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                                 TempData["msgtype"] = "ERROR";
                                 TempData["message"] = "Force Redirecting to Login";
                                 return RedirectToAction("Index", "Login");
@@ -102,6 +110,8 @@ namespace WEB_BA.Controllers
                             HttpContext.Session.Remove("TokenNo");
                             HttpContext.Session.Remove("JWToken");
                             HttpContext.Session.Remove("JWTRefreshToken");
+                            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                             TempData["message"] = "Error invalidating session.";
                             return RedirectToAction("Index", "Login");
                         }
@@ -112,6 +122,8 @@ namespace WEB_BA.Controllers
                         HttpContext.Session.Remove("TokenNo");
                         HttpContext.Session.Remove("JWToken");
                         HttpContext.Session.Remove("JWTRefreshToken");
+                        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                        await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                         TempData["msgtype"] = "ERROR";
                         TempData["message"] = "Error invalidating session.";
                         return RedirectToAction("Index", "Login");
@@ -120,6 +132,8 @@ namespace WEB_BA.Controllers
             }
             catch (Exception ex)
             {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                 string exception = ex.ToString();
                 TempData["Exception"] = exception;
                 return RedirectToAction("Index", "UnexpectedError");
