@@ -49,17 +49,33 @@ namespace WEB_BA
             {
                 options.Authority = "http://localhost:8080/realms/DTI";
                 options.ClientId = "web-security";
-                options.ClientSecret = "EJEwdtKOACzW1EWjSKnK6eikH1HJg07G";
+                options.ClientSecret = "f3e5xVZpzDVMpo7OVshNVXU4PVsvzwAq";
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.RequireHttpsMetadata = false;
                 options.CallbackPath = "/signin-oidc";
-                options.SignedOutCallbackPath = "/Helper/Logout";
+                options.SignedOutCallbackPath = "/signout-callback-oidc";
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     NameClaimType = "preferred_username",
                     RoleClaimType = "roles"
+                };
+                options.Events = new OpenIdConnectEvents
+                {
+                    OnRedirectToIdentityProvider = context =>
+                    {
+                        // This will force re-auth on Keycloak side
+                        context.ProtocolMessage.Prompt = "login";
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToIdentityProviderForSignOut = context =>
+                    {
+                        var logoutUri = $"{options.Authority}/protocol/openid-connect/logout?client_id={options.ClientId}&logout_uri={context.Request.Scheme}://{context.Request.Host}{options.SignedOutCallbackPath}";
+                        context.Response.Redirect(logoutUri);
+                        context.HandleResponse();
+                        return Task.CompletedTask;
+                    }
                 };
             });
         }

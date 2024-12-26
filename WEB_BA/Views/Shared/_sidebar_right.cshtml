@@ -390,7 +390,7 @@
 		}
 	};
 
-	$(".Logout").off("click").on("click", function () {
+	$(".Logout").off("click").on("click", async function () {
 		Swal.fire({
 			html: `Do you really want to <strong>Logout</strong> Now ?`,
 			icon: "info",
@@ -404,7 +404,7 @@
 			}
 		}).then((result) => {
 			if (result.isConfirmed) {
-				var Success = AjaxCallWithoutDataNoAsync("/Helper/ClearSession");
+				var Success = await AjaxCallWithoutData("/Helper/ClearSession");
 				if (Success == 1) {
 					Swal.fire({
 						icon: 'success',

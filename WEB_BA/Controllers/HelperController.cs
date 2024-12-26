@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using WEB_BA.DataProvider;
 using WEB_BA.Models;
 
@@ -16,6 +15,12 @@ namespace WEB_BA.Controllers
         public HelperController(LoginController loginController)
         {
             _loginController = loginController;
+        }
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            return Ok(1);
         }
 
         [HttpPost]
@@ -61,7 +66,7 @@ namespace WEB_BA.Controllers
                     string UserEmail = HttpContext.Session.GetString("UserEmail");
 
                     var url = "api/Auth/InvalidateSession";
-                    var payload = new { RefreshToken = TokenNo, Token = JWTRefreshTokenNew , Email = UserEmail };
+                    var payload = new { RefreshToken = TokenNo, Token = JWTRefreshTokenNew, Email = UserEmail };
 
                     string response = await ApiCall.JWTApiCallWithObject(url, payload, "Post", JWToken);
 
@@ -70,63 +75,41 @@ namespace WEB_BA.Controllers
                         dynamic jsonResponse = JsonConvert.DeserializeObject(response);
                         if (jsonResponse != null)
                         {
-
                             if (jsonResponse.status == "SUCCESS")
                             {
-                                await HttpContext.SignOutAsync();
-                                HttpContext.Session.Remove("TokenNo");
-                                HttpContext.Session.Remove("JWToken");
-                                HttpContext.Session.Remove("JWTRefreshToken");
+                                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                                 HttpContext.Session.Clear();
-
-                                TokenNo = HttpContext.Session.GetString("TokenNo");
-                                if (TokenNo == null)
-                                {
-                                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                                    await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-                                    return Ok(1);
-                                }
-                                else
-                                {
-                                    return Ok(0);
-                                }
+                                return Ok(1);
                             }
                             else
                             {
-                                await HttpContext.SignOutAsync();
-                                HttpContext.Session.Remove("TokenNo");
-                                HttpContext.Session.Remove("JWToken");
-                                HttpContext.Session.Remove("JWTRefreshToken");
                                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                                 await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                                HttpContext.Session.Clear();
                                 TempData["msgtype"] = "ERROR";
                                 TempData["message"] = "Force Redirecting to Login";
-                                return RedirectToAction("Index", "Login");
+                                return Ok(1);
                             }
                         }
                         else
                         {
                             TempData["msgtype"] = "ERROR";
-                            HttpContext.Session.Remove("TokenNo");
-                            HttpContext.Session.Remove("JWToken");
-                            HttpContext.Session.Remove("JWTRefreshToken");
+                            HttpContext.Session.Clear();
                             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                             await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
                             TempData["message"] = "Error invalidating session.";
-                            return RedirectToAction("Index", "Login");
+                            return Ok(1);
                         }
                     }
                     else
                     {
-                        await HttpContext.SignOutAsync();
-                        HttpContext.Session.Remove("TokenNo");
-                        HttpContext.Session.Remove("JWToken");
-                        HttpContext.Session.Remove("JWTRefreshToken");
                         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                         await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                        HttpContext.Session.Clear();
                         TempData["msgtype"] = "ERROR";
                         TempData["message"] = "Error invalidating session.";
-                        return RedirectToAction("Index", "Login");
+                        return Ok(1);
                     }
                 }
             }
@@ -139,6 +122,5 @@ namespace WEB_BA.Controllers
                 return RedirectToAction("Index", "UnexpectedError");
             }
         }
-
     }
 }
