@@ -67,6 +67,29 @@ namespace WEB_BA.DataProvider
             }
         }
 
+        public static async Task<string> JWTApiCallWithString(string url, string payload, string action, string JWToken)
+        {
+            try
+            {
+                HttpClient client = Initial();
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", JWToken);
+                HttpContent httpContent = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+                HttpResponseMessage response = action.ToLower() == "post"
+                    ? await client.PostAsync(url, httpContent)
+                    : await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+                return "Null";
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
         // Perform API call with an object payload
         public static async Task<string> ApiCallWithObject(string url, object payload, string action)
         {

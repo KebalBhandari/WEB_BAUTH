@@ -24,6 +24,7 @@ namespace WEB_BA.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ClearSession()
         {
             try

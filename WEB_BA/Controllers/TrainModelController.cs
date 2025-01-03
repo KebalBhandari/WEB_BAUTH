@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
+using WEB_BA.DataProvider;
 using WEB_BA.Models;
 
 
@@ -42,45 +44,59 @@ namespace WEB_BA.Controllers
         }
 
         [HttpPost]
-        public Task<IActionResult> SaveUserData([FromBody] UserDataModel userData)
+        public async Task<IActionResult> SaveUserData([FromBody] UserDataModel userData)
         {
             try
             {
                 string session = HttpContext.Session.GetString("TokenNo");
                 if (string.IsNullOrEmpty(session))
                 {
-                    return Task.FromResult<IActionResult>(Unauthorized("Session expired. Please log in again."));
+                    return RedirectToAction("Index", "Login");
                 }
 
-                return Task.FromResult<IActionResult>(Ok(new { message = "Data saved successfully." }));
+                else
+                {
+                    string JWToken = HttpContext.Session.GetString("JWToken");
+                    var url = "api/TrainModel/GetData";
+                    userData.TokenNo = session;
+                    string response = await ApiCall.JWTApiCallWithObject(url, userData, "Post", JWToken);
+                    return Ok(response);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving data: {ex.Message}");
-                return Task.FromResult<IActionResult>(StatusCode(500, "An error occurred while saving data."));
+                string Exception = ex.ToString();
+                TempData["Exception"] = Exception;
+                return RedirectToAction("Index", "UnexpectedError");
             }
         }
 
-
-        [HttpGet]
-        public Task<IActionResult> GetUserData()
+        
+        [HttpPost]
+        public async Task<IActionResult> PredictData([FromBody] UserBehaviorDataModel userData)
         {
             try
             {
                 string session = HttpContext.Session.GetString("TokenNo");
                 if (string.IsNullOrEmpty(session))
                 {
-                    return Task.FromResult<IActionResult>(Unauthorized("Session expired. Please log in again."));
+                    return RedirectToAction("Index", "Login");
                 }
+
                 else
                 {
-                    return Task.FromResult<IActionResult>(NotFound("No data found for the user."));
+                    string JWToken = HttpContext.Session.GetString("JWToken");
+                    var url = "api/TrainModel/Predict";
+                    userData.UserId = 0;
+                    string response = await ApiCall.JWTApiCallWithObject(url, userData, "Post", JWToken);
+                    return Ok(response);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching data: {ex.Message}");
-                return Task.FromResult<IActionResult>(StatusCode(500, "An error occurred while fetching data."));
+                string Exception = ex.ToString();
+                TempData["Exception"] = Exception;
+                return RedirectToAction("Index", "UnexpectedError");
             }
         }
     }

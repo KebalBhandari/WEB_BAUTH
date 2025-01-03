@@ -47,9 +47,9 @@ namespace WEB_BA
             })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
-                options.Authority = "http://localhost:8080/realms/DTI";
+                options.Authority = "https://keycloak.kebalbhandari.com.np:8443/realms/DTI";
                 options.ClientId = "web-security";
-                options.ClientSecret = "f3e5xVZpzDVMpo7OVshNVXU4PVsvzwAq";
+                options.ClientSecret = "pGLaXJAnDEDCKnVVajEG9IAjU805DXvC";
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
