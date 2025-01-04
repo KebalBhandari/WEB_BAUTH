@@ -315,34 +315,56 @@
 
             // After the second attempt, send data to the server
             if (currentAttempt === 3) {
-                await saveDataToServer();
+                $("#nextAttempt").text("SUBMIT");
+              //  await saveDataToServer();
             }
-        } else {
-            // All attempts completed, proceed to results
-            $(this).addClass('btn-animated');
-            $('#testSection').hide();
-            fetchDataAndCalculateResults();
-        }
+            } else {
+                // All attempts completed, proceed to results
+                $(this).addClass('btn-animated');
+                $('#testSection').hide();
+                await saveDataToServer();
+              //  fetchDataAndCalculateResults();
+            }
     });
 
-    // Function to send data to the server after the second attempt
     async function saveDataToServer() {
-        const dataToSend = {
-            timings: timings.slice(0, 2), // First two attempts
-            keyHoldTimes: keyHoldTimes.slice(0, 2),
-            dotTimings: dotTimings.slice(0, 1),
-            shapeTimings: shapeTimings,
-            shapeMouseMovements: shapeMouseMovements
-        };
+            const dataToSend = {
+                timings: timings.slice(0, 3),               // Sending first 3 attempts for timings
+                keyHoldTimes: keyHoldTimes.slice(0, 3),     // Sending first 3 attempts for key hold times
+                dotTimings: dotTimings.slice(0, 3),         // Sending first 3 attempts for dot timings
+                shapeTimings: shapeTimings.slice(0, 3),     // Sending first 3 attempts for shape timings
+                shapeMouseMovements: shapeMouseMovements.slice(0, 3)
+            };
 
-        var response = await AjaxCall("/TrainModel/SaveUserData",dataToSend);
+        var response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
         if (response != "") {
             AlertTost("success", "Data Saved Successfully");
         }
         else {
             AlertTost("error", "Try Again!!!");
         }
+        $('#matchingPercent').text("100");
+        $('#resultSection').show();
     }
+
+    // Function to send data to the server after the second attempt
+    //async function saveDataToServer() {
+    //    const dataToSend = {
+    //        timings: timings.slice(0, 2), // First two attempts
+    //        keyHoldTimes: keyHoldTimes.slice(0, 2),
+    //        dotTimings: dotTimings.slice(0, 1),
+    //        shapeTimings: shapeTimings,
+    //        shapeMouseMovements: shapeMouseMovements
+    //    };
+
+    //    var response = await AjaxCall("/TrainModel/SaveUserData",dataToSend);
+    //    if (response != "") {
+    //        AlertTost("success", "Data Saved Successfully");
+    //    }
+    //    else {
+    //        AlertTost("error", "Try Again!!!");
+    //    }
+    //}
 
     // Function to fetch data from the server after the third attempt
     async function fetchDataAndCalculateResults() {

@@ -65,33 +65,33 @@
 </div>
 
 <script type="text/javascript">
-    $(".Logout").off("click").on("click", function () {
-            Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      cancelButtonText: 'No, Cancel',
-      confirmButtonText: "Logout Now"
-    }).then((result) => {
-      if (result.isConfirmed) {
-         var Success = AjaxCallWithoutDataNoAsync("/Helper/ClearSession");
-                    if (Success == 1) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            showConfirmButton: false,
-                            timer: 1000
-                        });
-                        LogoutNow();         
-                    }
-                    else{
-                        window.location.assign('/SessionExpired');
-                    }
-      }
-    }); 
+    $(".Logout").off("click").on("click", async function () {
+        await Swal.fire({
+              title: "Are you sure?",
+              text: "You won't be able to revert this!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              cancelButtonText: 'No, Cancel',
+              confirmButtonText: "Logout Now"
+            }).then((result) => {
+              if (result.isConfirmed) {
+                 var Success = AjaxCallWithoutDataNoAsync("/Helper/ClearSession");
+                            if (Success == 1) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    showConfirmButton: false,
+                                    timer: 1000
+                                });
+                                LogoutNow();         
+                            }
+                            else{
+                                window.location.assign('/SessionExpired');
+                            }
+              }
+            }); 
         });
 
         const LogoutNow = async () => {

@@ -57,7 +57,7 @@ namespace WEB_BA.Controllers
                 else
                 {
                     string JWToken = HttpContext.Session.GetString("JWToken");
-                    var url = "api/TrainModel/GetData";
+                    var url = "api/TrainModel/SaveData";
                     userData.TokenNo = session;
                     string response = await ApiCall.JWTApiCallWithObject(url, userData, "Post", JWToken);
                     return Ok(response);
