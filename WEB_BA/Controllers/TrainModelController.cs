@@ -73,7 +73,7 @@ namespace WEB_BA.Controllers
 
         
         [HttpPost]
-        public async Task<IActionResult> PredictData([FromBody] UserBehaviorDataModel userData)
+        public async Task<IActionResult> PredictData([FromBody] UserDataModel userData)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace WEB_BA.Controllers
                 {
                     string JWToken = HttpContext.Session.GetString("JWToken");
                     var url = "api/TrainModel/Predict";
-                    userData.UserId = 0;
+                    userData.TokenNo = session;
                     string response = await ApiCall.JWTApiCallWithObject(url, userData, "Post", JWToken);
                     return Ok(response);
                 }

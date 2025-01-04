@@ -346,21 +346,42 @@
 
     // Function to fetch data from the server after the third attempt
     async function fetchDataAndCalculateResults() {
-        var savedData = await AjaxCallWithoutData("/TrainModel/GetUserData");
-        if (savedData != "") {
-            // Parse JSON if necessary
-            if (typeof savedData === "string") {
-                savedData = JSON.parse(savedData);
-            }
+        const dataToTest = {
+            timings: [timings[2]], // Use slice to match the structure if needed
+            keyHoldTimes: [keyHoldTimes[2]], // Wrap in an array to match the format
+            dotTimings: [dotTimings[1]], // Wrap in an array to match the format
+            shapeTimings: shapeTimings.slice(0, 1), // Use only the first attempt for shape timings
+            shapeMouseMovements: shapeMouseMovements.slice(0, 1) // Use only the first attempt for mouse movements
+        };
 
-            if (Array.isArray(savedData)) {
-                await compareDataAndDisplayResults(savedData);
-            } else {
-                console.error("Error: Expected an array, but received:", savedData);
+        var response = await AjaxCall("/TrainModel/PredictData", dataToTest);
+        if (response != "") {
+            try {
+                // Parse the JSON response
+                var result = JSON.parse(response);
+
+                if (result.status === "SUCCESS") {
+                    var confidence = result.confidence;
+                    var isAnomaly = result.isAnomaly;
+
+                    // Update the UI based on the confidence and anomaly detection
+                    $('#matchingPercent').text((confidence * 100).toFixed(2));
+                    $('#resultSection').show();
+
+                    if (isAnomaly) {
+                        AlertTost("warning", "Anomaly detected! Please verify the user.");
+                    } else {
+                        AlertTost("success", "User behavior matches the expected pattern.");
+                    }
+                } else {
+                    AlertTost("error", "Prediction failed. Please try again.");
+                }
+            } catch (e) {
+                console.error("Error parsing response:", e);
+                AlertTost("error", "Unexpected error. Please try again.");
             }
-        }
-        else {
-            AlertTost("Info", "Try Again!!!");
+        } else {
+            AlertTost("error", "No response from server. Please try again.");
         }
     }
 

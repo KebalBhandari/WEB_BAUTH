@@ -210,31 +210,32 @@ namespace WEB_BA.Controllers
                             {
                                 TempData["msgtype"] = "info";
                                 TempData["message"] = (string)jsonResponse.Message;
-                                return View();
+                                return RedirectToAction("Index");
                             }
                         }
                         else
                         {
                             TempData["msgtype"] = "info";
                             TempData["message"] = "Error connecting to the authentication service.";
-                            return View();
+                            return RedirectToAction("Index");
                         }
                     }
                     else
                     {
                         TempData["msgtype"] = "info";
                         TempData["message"] = "Error connecting to the authentication service.";
-                        return View();
+                        return RedirectToAction("Index");
                     }
                 }
                 catch (Exception)
                 {
                     TempData["msgtype"] = "info";
                     TempData["message"] = "Error parsing token";
-                    return View();
+                    return RedirectToAction("Index");
                 }
             }
         }
+
 
         public bool IsTokenExpiringSoon(string token)
         {
