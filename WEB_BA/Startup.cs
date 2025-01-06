@@ -8,7 +8,7 @@ namespace WEB_BA
 {
     public class Startup
     {
-        public static string baseApiUrl = "https://localhost:7244";
+        public static string baseApiUrl = "https://api.kebalbhandari.com.np";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
