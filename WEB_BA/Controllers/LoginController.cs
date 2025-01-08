@@ -63,7 +63,14 @@ namespace WEB_BA.Controllers
                     };
 
                     string response = await ApiCall.ApiCallWithObject(url, payload, "Post");
-                    if (response != null && response != "Null")
+                    if (response.StartsWith("<") || response.Contains("html"))
+                    {
+                        TempData["msgtype"] = "error";
+                        TempData["message"] = "Unexpected response from the server. Please contact support.";
+                        return View(model);
+                    }
+
+                    else if (response != null && response != "Null")
                     {
                         dynamic jsonResponse = JsonConvert.DeserializeObject(response);
                         if (jsonResponse != null)
@@ -79,13 +86,13 @@ namespace WEB_BA.Controllers
                                     HttpContext.Session.SetString("JWTRefreshToken", (string)jsonResponse.jwtRefreshToken);
 
                                 TempData["msgtype"] = "LoginSuccess";
-                                TempData["message"] = (string)jsonResponse.Message;
+                                TempData["message"] = (string)jsonResponse.message;
                                 return RedirectToAction("Index", "Dashboard");
                             }
                             else
                             {
                                 TempData["msgtype"] = "info";
-                                TempData["message"] = (string)jsonResponse.Message;
+                                TempData["message"] = (string)jsonResponse.message;
                                 return View(model);
                             }
 
@@ -93,7 +100,7 @@ namespace WEB_BA.Controllers
                         else
                         {
                             TempData["msgtype"] = "info";
-                            TempData["message"] = "Error connecting to the authentication service.";
+                            TempData["message"] = "Error connecting to the authentication service. Try Again";
                             return View(model);
                         }
                     }

@@ -48,8 +48,13 @@ namespace WEB_BA.Controllers
                     };
 
                     string response = await ApiCall.ApiCallWithObject(url, payload, "Post");
-
-                    if (!string.IsNullOrEmpty(response) && response != "Null")
+                    if (response.StartsWith("<") || response.Contains("html"))
+                    {
+                        TempData["msgtype"] = "error";
+                        TempData["message"] = "Unexpected response from the server. Please contact support.";
+                        return View(model);
+                    }
+                    else if (!string.IsNullOrEmpty(response) && response != "Null")
                     {
                         dynamic jsonResponse = JsonConvert.DeserializeObject(response);
 

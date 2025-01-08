@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using WEB_BA.Controllers;
@@ -9,6 +10,7 @@ namespace WEB_BA
     public class Startup
     {
         public static string baseApiUrl = "https://api.kebalbhandari.com.np";
+        //public static string baseApiUrl = "http://localhost:7244";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -49,7 +51,7 @@ namespace WEB_BA
             {
                 options.Authority = "https://keycloak.kebalbhandari.com.np:8443/realms/DTI";
                 options.ClientId = "web-security";
-                options.ClientSecret = "pGLaXJAnDEDCKnVVajEG9IAjU805DXvC";
+                options.ClientSecret = "U7YaQIfjxLOBvIGLlxscWJMizFdD9Kpo";
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
@@ -97,6 +99,7 @@ namespace WEB_BA
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseHttpsRedirection();
                 app.UseHsts();
             }
 
@@ -109,7 +112,10 @@ namespace WEB_BA
                     await next();
                 }
             });
-
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
             app.UseStaticFiles();
             app.UseSession();
             app.UseRouting();
