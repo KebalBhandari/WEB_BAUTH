@@ -64,7 +64,7 @@ namespace WEB_BA.Controllers
                             TempData["message"] = "User Created Successfully !!!";
                             return RedirectToAction("Index", "Login");
                         }
-                        else if (jsonResponse != null)
+                        else if (jsonResponse != null && jsonResponse?.status == "ERROR")
                         {
                             TempData["msgtype"] = "info";
                             TempData["message"] = jsonResponse.message;

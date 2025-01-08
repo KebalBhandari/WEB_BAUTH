@@ -10,11 +10,52 @@
         "Amazingly few discotheques provide jukeboxes.",
         "Grumpy wizards make toxic brew for the evil queen and jack.",
         "The five boxing wizards jump quickly.",
-        "Big Fuji waves pitch enzymed kex liquor jugs."
+        "Big Fuji waves pitch enzymed kex liquor jugs.",
+        "Lazy dogs often sleep in the sunniest spot in the yard.",
+        "Twelve jovial men quickly pick five ripe mangoes.",
+        "Bright yellow flowers bloom during springtime.",
+        "Jack quietly observed the mesmerizing sunset from the hilltop.",
+        "Few daring explorers venture into the uncharted forest.",
+        "Ducks gracefully glide across the shimmering pond.",
+        "A brisk wind swept across the barren desert landscape.",
+        "Seven curious cats climbed up the ancient oak tree.",
+        "Heavy clouds gathered ominously over the distant mountains.",
+        "Gleaming stars twinkled brightly in the midnight sky.",
+        "Smart students solve tricky problems with logical thinking.",
+        "Vast green fields stretch endlessly beyond the horizon.",
+        "Colorful birds sing melodious tunes at dawn.",
+        "Ten swift deer raced across the open meadow.",
+        "Ancient ruins reveal secrets of a forgotten civilization.",
+        "The bustling market overflowed with vibrant goods and lively chatter.",
+        "Early morning hikers reached the summit before sunrise.",
+        "Crystal-clear water cascades down the rocky cliff.",
+        "Golden sands glisten under the warm tropical sun.",
+        "Mysterious shadows danced along the cobblestone streets.",
+        "Adventurous kids built an elaborate treehouse in the backyard.",
+        "The chef skillfully prepared a delicious five-course meal.",
+        "A sudden thunderstorm caught everyone by surprise.",
+        "Enthusiastic fans cheered loudly for their favorite team.",
+        "Lush gardens display a dazzling array of exotic flowers.",
+        "Careful planning ensures a smooth and successful event.",
+        "Fierce winds howled through the narrow mountain pass.",
+        "The library offers a quiet haven for avid readers.",
+        "Tall skyscrapers define the city’s iconic skyline.",
+        "Playful dolphins leaped gracefully out of the water.",
+        "Whimsical paintings adorn the walls of the cozy café.",
+        "The scent of fresh bread wafted through the bustling bakery.",
+        "Bright lanterns illuminated the festive village square.",
+        "Determined athletes train tirelessly for the upcoming marathon.",
+        "Fluffy snowflakes gently blanketed the sleepy town.",
+        "Inventive scientists work on groundbreaking new technologies.",
+        "The majestic eagle soared high above the rugged cliffs.",
+        "Serene lakes reflect the beauty of the surrounding forest.",
+        "Friendly neighbors gathered for an evening barbecue.",
+        "The musician played a haunting melody on the grand piano."
     ];
 
-    const totalDots = 2; // Number of dots to click
-    const totalShapes = 2; // Number of shape selections
+
+    const totalDots = 5; // Number of dots to click
+    const totalShapes = 5; // Number of shape selections
     const totalAttempts = 3;
     let currentAttempt = 1;
 
