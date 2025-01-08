@@ -67,7 +67,7 @@ namespace WEB_BA.Controllers
                         else if (jsonResponse != null)
                         {
                             TempData["msgtype"] = "info";
-                            TempData["message"] = jsonResponse.Message;
+                            TempData["message"] = jsonResponse.message;
                             return View(model);
                         }
                         else
