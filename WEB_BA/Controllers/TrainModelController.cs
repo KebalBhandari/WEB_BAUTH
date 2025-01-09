@@ -22,7 +22,7 @@ namespace WEB_BA.Controllers
                 else
                 {
                     var UserName = HttpContext.Session.GetString("UserName");
-                    if (UserName == "")
+                    if (UserName == "" || UserName == null)
                     {
                         TempData["UserName"] = "Welcome";
                     }

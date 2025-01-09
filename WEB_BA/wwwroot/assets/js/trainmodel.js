@@ -41,7 +41,7 @@
         "The library offers a quiet haven for avid readers.",
         "Tall skyscrapers define the city’s iconic skyline.",
         "Playful dolphins leaped gracefully out of the water.",
-        "Whimsical paintings adorn the walls of the cozy café.",
+        "Whimsical paintings adorn the walls of the cozy cafe.",
         "The scent of fresh bread wafted through the bustling bakery.",
         "Bright lanterns illuminated the festive village square.",
         "Determined athletes train tirelessly for the upcoming marathon.",
@@ -83,7 +83,7 @@
         currentAttempt = 1;
         $('#inputText').val('');
         $('#matchingPercent').text('0');
-        $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/15</div>');
+        $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
         $('#shapeArea').hide();
         $('#dotArea').show();
         $('#nextAttempt').removeClass('btn-animated');
@@ -164,7 +164,7 @@
     function startShapeSelection() {
         $('#dotArea').hide();
         $('#shapeArea').show();
-        $('#shapeArea').empty().append('<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/15</div>');
+        $('#shapeArea').empty().append('<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>');
         $('#taskInstruction').text('Please select the correct shapes and type the following text:');
         updateProgressBar(0);
 
@@ -347,7 +347,7 @@
                 // Reset to dot sequence
                 $('#shapeArea').hide();
                 $('#dotArea').show();
-                $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/15</div>');
+                $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
                 $('#taskInstruction').text('Please click on the dots that appear and type the following text:');
                 startDotSequence();
             }
@@ -379,14 +379,24 @@
 
         var response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
         if (response != "") {
-            AlertTost("success", "Data Saved Successfully");
+            try {
+                var result = JSON.parse(response);
+                if (result.status === "SUCCESS") {
+                    AlertTost("success", result.message);
+                } else {
+                    AlertTost("error", result.message);
+                }
+            } catch (e) {
+                console.error("Error parsing response:", e);
+                AlertTost("error", "Unexpected error. Please try again.");
+            }
         }
         else {
             AlertTost("error", "Try Again!!!");
         }
         $('#matchingPercent').text("100");
         $('#resultSection').show();
-    }
+    };
 
     // Function to send data to the server after the second attempt
     //async function saveDataToServer() {

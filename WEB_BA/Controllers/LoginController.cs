@@ -78,6 +78,8 @@ namespace WEB_BA.Controllers
                             if (jsonResponse.status == "SUCCESS")
                             {
                                 HttpContext.Session.SetString("UserEmail", model.Email);
+                                if (!string.IsNullOrEmpty((string)jsonResponse.userName))
+                                    HttpContext.Session.SetString("UserName", (string)jsonResponse.userName);
                                 if (!string.IsNullOrEmpty((string)jsonResponse.refreshToken))
                                     HttpContext.Session.SetString("TokenNo", (string)jsonResponse.refreshToken);
                                 if (!string.IsNullOrEmpty((string)jsonResponse.jwtToken))
@@ -202,6 +204,8 @@ namespace WEB_BA.Controllers
                             if (jsonResponse.status == "SUCCESS")
                             {
                                 HttpContext.Session.SetString("UserEmail", keyCloakAuth.Email);
+                                if (!string.IsNullOrEmpty((string)jsonResponse.userName))
+                                    HttpContext.Session.SetString("UserName", (string)jsonResponse.userName);
                                 if (!string.IsNullOrEmpty((string)jsonResponse.refreshToken))
                                     HttpContext.Session.SetString("TokenNo", (string)jsonResponse.refreshToken);
                                 if (!string.IsNullOrEmpty((string)jsonResponse.jwtToken))
@@ -210,13 +214,13 @@ namespace WEB_BA.Controllers
                                     HttpContext.Session.SetString("JWTRefreshToken", (string)jsonResponse.jwtRefreshToken);
 
                                 TempData["msgtype"] = "LoginSuccess";
-                                TempData["message"] = (string)jsonResponse.Message;
+                                TempData["message"] = (string)jsonResponse.message;
                                 return RedirectToAction("Index", "Dashboard");
                             }
                             else
                             {
                                 TempData["msgtype"] = "info";
-                                TempData["message"] = (string)jsonResponse.Message;
+                                TempData["message"] = (string)jsonResponse.message;
                                 return RedirectToAction("Index");
                             }
                         }

@@ -17,7 +17,7 @@ namespace WEB_BA.Controllers
                 else
                 {
                     var UserName = HttpContext.Session.GetString("UserName");
-                    if (UserName=="")
+                    if (UserName=="" || UserName== null)
                     {
                         TempData["UserName"] = "Welcome";
                     }
@@ -37,6 +37,6 @@ namespace WEB_BA.Controllers
                 TempData["Exception"] = Exception;
                 return RedirectToAction("Index", "UnexpectedError");
             }
-        }
+        }        
     }
 }
