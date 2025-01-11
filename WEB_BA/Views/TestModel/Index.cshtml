@@ -1,5 +1,366 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<link href="~/assets/css/trainmodel.css" rel="stylesheet" />
+<div class="content-page">
+    <div class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+                                <li class="breadcrumb-item active">Test Model</li>
+                            </ol>
+                        </div>
+                        <h4 class="page-title">Behavioral Authentication Demo</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="d-grid">
+                                        <div id="testSection">
+                                            <p>[ <span id="taskInstruction">Please click on the dots that appear and type the following text:</span> ] </p>
+                                            <div class="progress">
+                                                <div id="taskProgressBar" class="progress-bar progress-bar-striped" role="progressbar"
+                                                     style="width: 0%;">
+                                                    0%
+                                                </div>
+                                            </div>
+                                            <div id="dotArea" class="instructions">
+                                                Click on the dots as they appear.
+                                                <div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>
+                                            </div>
+                                            <div id="shapeArea" class="instructions" style="display: none;">
+                                                <p id="shapeQuestion" class="mb-2"></p>
+                                                <div id="shapesContainer"></div>
+                                                <div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="inputText" class="form-label">Your Input:</label><blockquote class="blockquote">
+                                                    <p id="promptText" class="prompt-text"></p>
+                                                </blockquote>
+                                                <textarea class="form-control" id="inputText" rows="3" placeholder="Type here..."></textarea>
+                                            </div>
+                                            <button class="btn btn-primary btn-animated" id="nextAttempt">Submit and Test</button>
+                                        </div>
+
+                                        <div id="resultSection" class="mt-5" style="display: none;">
+                                            <p class="result">Matching Percentage: <span id="matchingPercent">100</span>%</p>
+                                            <button class="btn btn-secondary" id="tryAgain">Try Again</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+        $(document).ready(function () {
+        // Sentences ranging from easy to hard
+        const sentences = [
+            "The quick brown fox jumps over the lazy dog.",
+            "Pack my box with five dozen liquor jugs.",
+            "How razorback-jumping frogs can level six piqued gymnasts!",
+            "Sympathizing would fix Quaker objectives.",
+            "Crazy Frederick bought many very exquisite opal jewels.",
+            "Jaded zombies acted quaintly but kept driving their oxen forward.",
+            "Amazingly few discotheques provide jukeboxes.",
+            "Grumpy wizards make toxic brew for the evil queen and jack.",
+            "The five boxing wizards jump quickly.",
+            "Big Fuji waves pitch enzymed kex liquor jugs.",
+            "Lazy dogs often sleep in the sunniest spot in the yard.",
+            "Twelve jovial men quickly pick five ripe mangoes.",
+            "Bright yellow flowers bloom during springtime.",
+            "Jack quietly observed the mesmerizing sunset from the hilltop.",
+            "Few daring explorers venture into the uncharted forest.",
+            "Ducks gracefully glide across the shimmering pond.",
+            "A brisk wind swept across the barren desert landscape.",
+            "Seven curious cats climbed up the ancient oak tree.",
+            "Heavy clouds gathered ominously over the distant mountains.",
+            "Gleaming stars twinkled brightly in the midnight sky.",
+            "Smart students solve tricky problems with logical thinking.",
+            "Vast green fields stretch endlessly beyond the horizon.",
+            "Colorful birds sing melodious tunes at dawn.",
+            "Ten swift deer raced across the open meadow.",
+            "Ancient ruins reveal secrets of a forgotten civilization.",
+            "The bustling market overflowed with vibrant goods and lively chatter.",
+            "Early morning hikers reached the summit before sunrise.",
+            "Crystal-clear water cascades down the rocky cliff.",
+            "Golden sands glisten under the warm tropical sun.",
+            "Mysterious shadows danced along the cobblestone streets.",
+            "Adventurous kids built an elaborate treehouse in the backyard.",
+            "The chef skillfully prepared a delicious five-course meal.",
+            "A sudden thunderstorm caught everyone by surprise.",
+            "Enthusiastic fans cheered loudly for their favorite team.",
+            "Lush gardens display a dazzling array of exotic flowers.",
+            "Careful planning ensures a smooth and successful event.",
+            "Fierce winds howled through the narrow mountain pass.",
+            "The library offers a quiet haven for avid readers.",
+            "Tall skyscrapers define the city’s iconic skyline.",
+            "Playful dolphins leaped gracefully out of the water.",
+            "Whimsical paintings adorn the walls of the cozy cafe.",
+            "The scent of fresh bread wafted through the bustling bakery.",
+            "Bright lanterns illuminated the festive village square.",
+            "Determined athletes train tirelessly for the upcoming marathon.",
+            "Fluffy snowflakes gently blanketed the sleepy town.",
+            "Inventive scientists work on groundbreaking new technologies.",
+            "The majestic eagle soared high above the rugged cliffs.",
+            "Serene lakes reflect the beauty of the surrounding forest.",
+            "Friendly neighbors gathered for an evening barbecue.",
+            "The musician played a haunting melody on the grand piano."
+        ];
+
+
+        const totalDots = 5; // Number of dots to click
+        const totalShapes = 5; // Number of shape selections
+        const totalAttempts = 1;
+        let currentAttempt = 1;
+
+        let timings = []; // Time between key presses for all attempts
+        let keyHoldTimes = []; // Duration each key is held down for all attempts
+        let dotTimings = []; // Array to hold dot timings for attempts 1 and 3
+        let shapeTimings = []; // Array to hold shape selection timings for attempt 2
+        let shapeMouseMovements = []; // Mouse movement data during shape selection
+        let promptTexts = []; // Prompt texts for each attempt
+        let userInputs = []; // User inputs for each attempt
+
+        let lastKeyTime = null; // Last keydown time
+
+        // Initialize the test
+        function initializeTest() {
+            // Reset variables
+            timings = [];
+            keyHoldTimes = [];
+            dotTimings = [];
+            shapeTimings = [];
+            shapeMouseMovements = [];
+            userInputs = [];
+            promptTexts = [];
+            lastKeyTime = null;
+            currentAttempt = 1;
+            $('#inputText').val('');
+            $('#matchingPercent').text('0');
+            $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
+            $('#shapeArea').hide();
+            $('#dotArea').show();
+            $('#nextAttempt').removeClass('btn-animated');
+            $('#currentAttempt').text(currentAttempt);
+            $('#taskInstruction').text('Please click on the dots that appear and type the following text:');
+            updateProgressBar(0);
+
+            // Randomly select sentences for each attempt
+            for (let i = 0; i < totalAttempts; i++) {
+                promptTexts.push(sentences[Math.floor(Math.random() * sentences.length)]);
+            }
+            $('#promptText').text(promptTexts[0]);
+
+            // Show test section and hide results
+            $('#testSection').show();
+            $('#resultSection').hide();
+
+            // Start dot sequence for the first attempt
+            startDotSequence();
+        }
+
+        initializeTest(); // Call on page load
+
+        // Function to update the progress bar
+        function updateProgressBar(percentage) {
+            $('#taskProgressBar').css('width', percentage + '%');
+            $('#taskProgressBar').text(percentage + '%');
+        }
+
+        // Function to start dot sequence
+        function startDotSequence() {
+            let dotCount = 0;
+            const area = document.getElementById('dotArea');
+            const timingsArray = [];
+
+            function showDot() {
+                if (dotCount >= totalDots) {
+                    return;
+                }
+
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+
+                const x = Math.random() * (area.clientWidth - 30);
+                const y = Math.random() * (area.clientHeight - 30);
+
+                dot.style.left = x + 'px';
+                dot.style.top = y + 'px';
+
+                const dotAppearTime = performance.now();
+                dot.addEventListener('click', function (event) {
+                    const clickTime = performance.now();
+                    const reactionTime = clickTime - dotAppearTime;
+                    timingsArray.push(reactionTime);
+
+                    dot.remove();
+                    dotCount++;
+                    $('#dotCount').text(`Dots Clicked: ${dotCount}/${totalDots}`);
+                    let progress = Math.floor((dotCount / totalDots) * 100);
+                    updateProgressBar(progress);
+                    showDot(); // Show next dot
+                });
+
+                area.appendChild(dot);
+            }
+
+            showDot(); // Start with the first dot
+
+            // Store the timings array for the current attempt
+            if (currentAttempt === 1) {
+                dotTimings[0] = timingsArray;
+            } 
+        }
+
+        // Function to start shape selection task
+        
+
+        // Capture typing patterns
+        $('#inputText').on('keydown', function (event) {
+            let currentTime = new Date().getTime();
+            // Time between key presses
+            if (lastKeyTime !== null) {
+                let interval = currentTime - lastKeyTime;
+                if (!timings[currentAttempt - 1]) {
+                    timings[currentAttempt - 1] = [];
+                }
+                timings[currentAttempt - 1].push(interval);
+            }
+            lastKeyTime = currentTime;
+
+            // Record keydown time for key hold duration
+            if (!keyHoldTimes[currentAttempt - 1]) {
+                keyHoldTimes[currentAttempt - 1] = [];
+            }
+            keyHoldTimes[currentAttempt - 1].push({
+                keydownTime: currentTime,
+                keyupTime: null,
+                duration: null
+            });
+        });
+
+        $('#inputText').on('keyup', function (event) {
+            let currentTime = new Date().getTime();
+
+            // Find the last keyHoldTimes entry with null keyupTime
+            let keyDataArray = keyHoldTimes[currentAttempt - 1];
+            for (let i = keyDataArray.length - 1; i >= 0; i--) {
+                if (keyDataArray[i].keyupTime === null) {
+                    keyDataArray[i].keyupTime = currentTime;
+                    keyDataArray[i].duration = keyDataArray[i].keyupTime - keyDataArray[i].keydownTime;
+                    break;
+                }
+            }
+        });
+
+        // Prevent copy, paste, and cut in the input field
+        //$('#inputText').on('copy paste cut', function (e) {
+        //    e.preventDefault();
+        //    alert('Copying and pasting are disabled. Please type the text manually.');
+        //});
+
+        //// Disable context menu (right-click) on the input field
+        //$('#inputText').on('contextmenu', function (e) {
+        //    e.preventDefault();
+        //});s
+
+        // Next Attempt button functionality
+        $('#nextAttempt').click(async function () {
+            const userInput = $('#inputText').val().trim();
+            if (userInput === '') {
+                alert('Please type the text before proceeding.');
+                return;
+            }
+            if (userInput !== promptTexts[currentAttempt - 1].trim()) {
+                alert('Your input does not match the prompt text. Please try again.');
+                return;
+            }
+            if (!timings[currentAttempt - 1] || timings[currentAttempt - 1].length < 1) {
+                alert('Not enough typing data captured. Please try typing again.');
+                return;
+            }
+            if (!keyHoldTimes[currentAttempt - 1] || keyHoldTimes[currentAttempt - 1].length < 1) {
+                alert('Not enough key hold data captured. Please try typing again.');
+                return;
+            }
+            if (currentAttempt === 1) {
+                let dotIndex = currentAttempt === 1 ? 0 : 1;
+                if (!dotTimings[dotIndex] || dotTimings[dotIndex].length < totalDots) {
+                    alert(`You need to click all ${totalDots} dots before proceeding.`);
+                    return;
+                }
+            }
+            else{
+                userInputs.push(userInput);
+                $('#inputText').val('');
+                updateProgressBar(0);
+                $(this).addClass('btn-animated');
+                    $('#testSection').hide();
+                    await saveDataToServer();
+            }
+        });
+
+        async function saveDataToServer() {
+                const dataToSend = {
+                    timings: timings.slice(0, 1),               // Sending first 3 attempts for timings
+                    keyHoldTimes: keyHoldTimes.slice(0, 1),     // Sending first 3 attempts for key hold times
+                    dotTimings: dotTimings.slice(0, 1)         // Sending first 3 attempts for dot timing
+                };
+
+            var response = await AjaxCall("/TrainModel/PredictData", dataToSend);
+            if (response != "") {
+                try {
+                    // Parse the JSON response
+                    var result = JSON.parse(response);
+
+                    if (result.status === "SUCCESS") {
+                        var confidence = result.confidence;
+                        var isAnomaly = result.isAnomaly;
+
+                        // Update the UI based on the confidence and anomaly detection
+                        $('#matchingPercent').text((confidence * 100).toFixed(2));
+                        $('#resultSection').show();
+
+                        if (isAnomaly) {
+                            AlertTost("warning", "Anomaly detected! Please verify the user.");
+                        } else {
+                            AlertTost("success", "User behavior matches the expected pattern.");
+                        }
+                    } else {
+                        AlertTost("error", "Prediction failed. Please try again.");
+                    }
+                } catch (e) {
+                    console.error("Error parsing response:", e);
+                    AlertTost("error", "Unexpected error. Please try again.");
+                }
+            } else {
+                AlertTost("error", "No response from server. Please try again.");
+            }
+        };
+
+              
+
+        // Try Again button functionality
+        $('#tryAgain').click(function () {
+            initializeTest();
+        });
+    });
+
+</script>
