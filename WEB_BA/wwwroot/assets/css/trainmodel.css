@@ -3,6 +3,13 @@
     font-weight: bold;
 }
 
+#areasContainer {
+    display: flex;
+    gap: 20px; /* some spacing between the two */
+    align-items: flex-start; /* top-align them */
+    margin-bottom: 20px; /* if desired */
+}
+
 #dotArea,
 #shapeArea {
     border: 2px dashed #6c757d;
@@ -11,6 +18,19 @@
     margin-bottom: 20px;
     overflow: hidden;
     background-color: #ffffff;
+}
+
+    #dotArea.instructions,
+    #shapeArea.instructions {
+        display: block; /* or inline-block or keep them block 
+                       so we can see the full 250px area. */
+        padding: 10px;
+    }
+
+#dotArea, #shapeArea {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .instructions {
@@ -27,7 +47,7 @@
 .shape {
     width: 40px;
     height: 40px;
-    position: absolute;
+    position: relative;
     cursor: pointer;
     transition: transform 0.2s;
 }

@@ -58,6 +58,7 @@
     const totalShapes = 5; // Number of shape selections
     const totalAttempts = 3;
     let currentAttempt = 1;
+    let totalShapeDotsCount = 0;
 
     let timings = []; // Time between key presses for all attempts
     let keyHoldTimes = []; // Duration each key is held down for all attempts
@@ -71,7 +72,7 @@
 
     // Initialize the test
     function initializeTest() {
-        // Reset variables
+        // Reset
         timings = [];
         keyHoldTimes = [];
         dotTimings = [];
@@ -81,28 +82,35 @@
         promptTexts = [];
         lastKeyTime = null;
         currentAttempt = 1;
+        totalShapeDotsCount = 0;
+
+        // Clear UI
         $('#inputText').val('');
         $('#matchingPercent').text('0');
         $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
-        $('#shapeArea').hide();
+        $('#shapesContainer').empty();
         $('#dotArea').show();
+        $('#shapeArea').show();
         $('#nextAttempt').removeClass('btn-animated');
         $('#currentAttempt').text(currentAttempt);
-        $('#taskInstruction').text('Please click on the dots that appear and type the following text:');
+        $('#taskInstruction').text(
+            'Please complete the dots, shapes, and type the following text:'
+        );
         updateProgressBar(0);
 
-        // Randomly select sentences for each attempt
+        // Pick random sentences for each attempt
         for (let i = 0; i < totalAttempts; i++) {
             promptTexts.push(sentences[Math.floor(Math.random() * sentences.length)]);
         }
         $('#promptText').text(promptTexts[0]);
 
-        // Show test section and hide results
         $('#testSection').show();
         $('#resultSection').hide();
 
-        // Start dot sequence for the first attempt
+        // CHANGED: Start both dot + shape sequences on attempt 1
         startDotSequence();
+        startShapeSelection();  // CHANGED: show shape from the start
+        $('#shapeArea').show(); // CHANGED: reveal shape area now
     }
 
     initializeTest(); // Call on page load
@@ -127,8 +135,8 @@
             const dot = document.createElement('div');
             dot.classList.add('dot');
 
-            const x = Math.random() * (area.clientWidth - 30);
-            const y = Math.random() * (area.clientHeight - 30);
+            const x = Math.random() * (area.clientWidth - 50);
+            const y = Math.random() * (area.clientHeight - 50);
 
             dot.style.left = x + 'px';
             dot.style.top = y + 'px';
@@ -141,8 +149,9 @@
 
                 dot.remove();
                 dotCount++;
+                totalShapeDotsCount++;
                 $('#dotCount').text(`Dots Clicked: ${dotCount}/${totalDots}`);
-                let progress = Math.floor((dotCount / totalDots) * 100);
+                let progress = Math.floor((totalShapeDotsCount / (totalDots + totalShapes)) * 100);
                 updateProgressBar(progress);
                 showDot(); // Show next dot
             });
@@ -153,17 +162,11 @@
         showDot(); // Start with the first dot
 
         // Store the timings array for the current attempt
-        if (currentAttempt === 1) {
-            dotTimings[0] = timingsArray;
-        } else if (currentAttempt === 3) {
-            dotTimings[1] = timingsArray;
-        }
+        dotTimings[currentAttempt - 1] = timingsArray; 
     }
 
     // Function to start shape selection task
     function startShapeSelection() {
-        $('#dotArea').hide();
-        $('#shapeArea').show();
         $('#shapeArea').empty().append('<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>');
         $('#taskInstruction').text('Please select the correct shapes and type the following text:');
         updateProgressBar(0);
@@ -196,7 +199,8 @@
                 $('#shapeArea').off('mousemove');
 
                 // Store the mouseMovements data for this attempt
-                shapeMouseMovements[0] = mouseMovements;
+                shapeTimings[currentAttempt - 1] = timingsArray;       // CHANGED
+                shapeMouseMovements[currentAttempt - 1] = mouseMovements; // CHANGED
 
                 return;
             }
@@ -227,8 +231,9 @@
                         // Correct selection
                         timingsArray.push({ reactionTime, isCorrect });
                         shapeCount++;
+                        totalShapeDotsCount++;
                         $('#shapeCount').text(`Shapes Selected: ${shapeCount}/${totalShapes}`);
-                        let progress = Math.floor((shapeCount / totalShapes) * 100);
+                        let progress = Math.floor((totalShapeDotsCount / (totalDots + totalShapes)) * 100);
                         updateProgressBar(progress);
                         showShapes(); // Proceed to next shape selection
                     } else {
@@ -316,18 +321,17 @@
             alert('Not enough key hold data captured. Please try typing again.');
             return;
         }
+        let dotArray = dotTimings[currentAttempt - 1];
+        if (!dotArray || dotArray.length < totalDots) {
+            alert(`You need to click all ${totalDots} dots before proceeding.`);
+            return;
+        }
 
-        if (currentAttempt === 2) {
-            if (!shapeTimings[0] || shapeTimings[0].length < totalShapes) {
-                alert(`You need to select the correct shape ${totalShapes} times before proceeding.`);
-                return;
-            }
-        } else if (currentAttempt === 1 || currentAttempt === 3) {
-            let dotIndex = currentAttempt === 1 ? 0 : 1;
-            if (!dotTimings[dotIndex] || dotTimings[dotIndex].length < totalDots) {
-                alert(`You need to click all ${totalDots} dots before proceeding.`);
-                return;
-            }
+        // Shapes:
+        let shapeArray = shapeTimings[currentAttempt - 1];
+        if (!shapeArray || shapeArray.length < totalShapes) {
+            alert(`You need to select the shape ${totalShapes} times before proceeding.`);
+            return;
         }
 
         userInputs.push(userInput);
@@ -335,29 +339,29 @@
         if (currentAttempt < totalAttempts) {
             // Prepare for the next attempt
             currentAttempt++;
+            totalShapeDotsCount = 0;
             lastKeyTime = null;
             $('#inputText').val('');
             $('#currentAttempt').text(currentAttempt);
             updateProgressBar(0);
 
-            if (currentAttempt === 2) {
-                // Start shape selection task
-                startShapeSelection();
-            } else if (currentAttempt === 3) {
-                // Reset to dot sequence
-                $('#shapeArea').hide();
-                $('#dotArea').show();
-                $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
-                $('#taskInstruction').text('Please click on the dots that appear and type the following text:');
-                startDotSequence();
-            }
+            $('#dotArea').empty()
+                .append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
+            $('#shapesContainer').empty();
+            $('#shapeArea').off('mousemove');
+
+            // CHANGED: Show both dotArea & shapeArea
+            $('#dotArea').show();
+            $('#shapeArea').show();
+
+            startDotSequence();     // CHANGED: always start a new dot sequence
+            startShapeSelection();  // CHANGED: always start a new shape selection
 
             $('#promptText').text(promptTexts[currentAttempt - 1]);
 
             // After the second attempt, send data to the server
             if (currentAttempt === 3) {
                 $("#nextAttempt").text("SUBMIT");
-              //  await saveDataToServer();
             }
             } else {
                 // All attempts completed, proceed to results
@@ -397,118 +401,6 @@
         $('#matchingPercent').text("100");
         $('#resultSection').show();
     };
-
-    // Function to send data to the server after the second attempt
-    //async function saveDataToServer() {
-    //    const dataToSend = {
-    //        timings: timings.slice(0, 2), // First two attempts
-    //        keyHoldTimes: keyHoldTimes.slice(0, 2),
-    //        dotTimings: dotTimings.slice(0, 1),
-    //        shapeTimings: shapeTimings,
-    //        shapeMouseMovements: shapeMouseMovements
-    //    };
-
-    //    var response = await AjaxCall("/TrainModel/SaveUserData",dataToSend);
-    //    if (response != "") {
-    //        AlertTost("success", "Data Saved Successfully");
-    //    }
-    //    else {
-    //        AlertTost("error", "Try Again!!!");
-    //    }
-    //}
-
-    // Function to fetch data from the server after the third attempt
-    async function fetchDataAndCalculateResults() {
-        const dataToTest = {
-            timings: [timings[2]], // Use slice to match the structure if needed
-            keyHoldTimes: [keyHoldTimes[2]], // Wrap in an array to match the format
-            dotTimings: [dotTimings[1]], // Wrap in an array to match the format
-            shapeTimings: shapeTimings.slice(0, 1), // Use only the first attempt for shape timings
-            shapeMouseMovements: shapeMouseMovements.slice(0, 1) // Use only the first attempt for mouse movements
-        };
-
-        var response = await AjaxCall("/TrainModel/PredictData", dataToTest);
-        if (response != "") {
-            try {
-                // Parse the JSON response
-                var result = JSON.parse(response);
-
-                if (result.status === "SUCCESS") {
-                    var confidence = result.confidence;
-                    var isAnomaly = result.isAnomaly;
-
-                    // Update the UI based on the confidence and anomaly detection
-                    $('#matchingPercent').text((confidence * 100).toFixed(2));
-                    $('#resultSection').show();
-
-                    if (isAnomaly) {
-                        AlertTost("warning", "Anomaly detected! Please verify the user.");
-                    } else {
-                        AlertTost("success", "User behavior matches the expected pattern.");
-                    }
-                } else {
-                    AlertTost("error", "Prediction failed. Please try again.");
-                }
-            } catch (e) {
-                console.error("Error parsing response:", e);
-                AlertTost("error", "Unexpected error. Please try again.");
-            }
-        } else {
-            AlertTost("error", "No response from server. Please try again.");
-        }
-    }
-
-    // Function to compare data and display results
-    async function compareDataAndDisplayResults(savedData) {
-        // Extract data from the third attempt
-        const thirdAttemptData = {
-            timings: timings[2],
-            keyHoldTimes: keyHoldTimes[2],
-            dotTimings: dotTimings[1]
-        };
-        console.log('savedData:', savedData);
-        console.log('ThirdAttemptData:', thirdAttemptData);
-        // Combine savedData and thirdAttemptData for comparison
-
-        let newAllTimings = [];
-        let newAllKeyHoldTimes = [];
-        let newAllDotTimings = [];
-
-        // Iterate over savedDataArray to collect all timings
-        savedData.forEach(async function (savedData) {
-            if (savedData.timings) {
-                newAllTimings = newAllTimings.concat(savedData.timings);
-            }
-            if (savedData.keyHoldTimes) {
-                newAllKeyHoldTimes = newAllKeyHoldTimes.concat(savedData.keyHoldTimes);
-            }
-            if (savedData.dotTimings) {
-                newAllDotTimings = newAllDotTimings.concat(savedData.dotTimings);
-            }
-        });
-
-        // Add the third attempt data
-        newAllTimings.push(thirdAttemptData.timings);
-        newAllKeyHoldTimes.push(thirdAttemptData.keyHoldTimes);
-        newAllDotTimings.push(thirdAttemptData.dotTimings);
-
-        const allTimings = newAllTimings.concat([thirdAttemptData.timings]);
-        const allKeyHoldTimes = newAllKeyHoldTimes.concat([thirdAttemptData.keyHoldTimes]);
-        const allDotTimings = newAllDotTimings.concat([thirdAttemptData.dotTimings]);
-
-        // Calculate matching scores
-        let typingMatch = await compareMultipleAttempts(allTimings);
-        let keyHoldMatch = await compareMultipleKeyHolds(allKeyHoldTimes);
-        let actionMatch = await compareActions(allDotTimings);
-
-        let overallMatch = (typingMatch * 0.4) + (keyHoldMatch * 0.3) + (actionMatch * 0.3);
-
-        $('#matchingPercent').text(overallMatch.toFixed(2));
-        $('#resultSection').show();
-
-        // Optionally, you can send the final result to the server to save it
-        // saveFinalResultToServer(overallMatch);
-    }
 
     // Function to compare multiple attempts of key press intervals
     async function compareMultipleAttempts(dataArray) {

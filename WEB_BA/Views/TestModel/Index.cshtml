@@ -129,10 +129,10 @@
         const totalShapes = 5; // Number of shape selections
         const totalAttempts = 1;
         let currentAttempt = 1;
-
         let timings = []; // Time between key presses for all attempts
         let keyHoldTimes = []; // Duration each key is held down for all attempts
-        let dotTimings = []; // Array to hold dot timings for attempts 1 and 5
+        let dotTimings = [];
+        let dotMouseMovements = []; 
         let promptTexts = []; // Prompt texts for each attempt
         let userInputs = []; // User inputs for each attempt
 
@@ -144,8 +144,7 @@
             timings = [];
             keyHoldTimes = [];
             dotTimings = [];
-            shapeTimings = [];
-            shapeMouseMovements = [];
+            dotMouseMovements = [];
             userInputs = [];
             promptTexts = [];
             lastKeyTime = null;
@@ -153,7 +152,6 @@
             $('#inputText').val('');
             $('#matchingPercent').text('0');
             $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
-            $('#shapeArea').hide();
             $('#dotArea').show();
             $('#nextAttempt').removeClass('btn-animated');
             $('#currentAttempt').text(currentAttempt);
@@ -187,9 +185,22 @@
             let dotCount = 0;
             const area = document.getElementById('dotArea');
             const timingsArray = [];
+            const mouseMovements = [];
+
+            $('#dotArea').on('mousemove', function (event) {
+                const currentTime = performance.now();
+                const x = event.pageX - $('#dotArea').offset().left;
+                const y = event.pageY - $('#dotArea').offset().top;
+                mouseMovements.push({
+                    time: currentTime,
+                    x: x,
+                    y: y
+                });
+            });
 
             function showDot() {
                 if (dotCount >= totalDots) {
+                    dotMouseMovements[0] = mouseMovements;
                     return;
                 }
 
@@ -226,9 +237,6 @@
                 dotTimings[0] = timingsArray;
             } 
         }
-
-        // Function to start shape selection task
-        
 
         // Capture typing patterns
         $('#inputText').on('keydown', function (event) {
@@ -304,14 +312,22 @@
                     alert(`You need to click all ${totalDots} dots before proceeding.`);
                     return;
                 }
+                else{
+                    userInputs.push(userInput);
+                $('#inputText').val('');
+                updateProgressBar(0);
+                $(this).addClass('btn-animated');
+                    $('#testSection').hide();
+                    await saveDataToServer();
+                }
             }
             else{
                 userInputs.push(userInput);
                 $('#inputText').val('');
                 updateProgressBar(0);
                 $(this).addClass('btn-animated');
-                    $('#testSection').hide();
-                    await saveDataToServer();
+                $('#testSection').hide();
+                await saveDataToServer();
             }
         });
 
@@ -319,7 +335,8 @@
                 const dataToSend = {
                     timings: timings.slice(0, 1),               // Sending first 3 attempts for timings
                     keyHoldTimes: keyHoldTimes.slice(0, 1),     // Sending first 3 attempts for key hold times
-                    dotTimings: dotTimings.slice(0, 1)         // Sending first 3 attempts for dot timing
+                    dotTimings: dotTimings.slice(0, 1),
+                    shapeMouseMovements: dotMouseMovements // Sending first 3 attempts for dot timing
                 };
 
             var response = await AjaxCall("/TrainModel/PredictData", dataToSend);
