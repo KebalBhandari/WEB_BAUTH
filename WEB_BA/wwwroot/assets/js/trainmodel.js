@@ -53,7 +53,6 @@
         "The musician played a haunting melody on the grand piano."
     ];
 
-
     const totalDots = 5; // Number of dots to click
     const totalShapes = 5; // Number of shape selections
     const totalAttempts = 3;
@@ -67,6 +66,11 @@
     let shapeMouseMovements = []; // Mouse movement data during shape selection
     let promptTexts = []; // Prompt texts for each attempt
     let userInputs = []; // User inputs for each attempt
+    let backspaceCount = 0; // Track backspace usage
+    let mousePathDots = []; // Track mouse movement path during dot task
+    let mousePathShapes = []; // Track mouse movement path during shape task
+    let clickPrecision = []; // Track how close the user clicks to the center of dots
+    let errorsAndCorrections = []; // Track typing errors and corrections
 
     let lastKeyTime = null; // Last keydown time
 
@@ -80,6 +84,11 @@
         shapeMouseMovements = [];
         userInputs = [];
         promptTexts = [];
+        backspaceCount = 0;
+        mousePathDots = [];
+        mousePathShapes = [];
+        clickPrecision = [];
+        errorsAndCorrections = [];
         lastKeyTime = null;
         currentAttempt = 1;
         totalShapeDotsCount = 0;
@@ -107,10 +116,10 @@
         $('#testSection').show();
         $('#resultSection').hide();
 
-        // CHANGED: Start both dot + shape sequences on attempt 1
+        // Start both dot + shape sequences on attempt 1
         startDotSequence();
-        startShapeSelection();  // CHANGED: show shape from the start
-        $('#shapeArea').show(); // CHANGED: reveal shape area now
+        startShapeSelection();
+        $('#shapeArea').show();
     }
 
     initializeTest(); // Call on page load
@@ -126,9 +135,24 @@
         let dotCount = 0;
         const area = document.getElementById('dotArea');
         const timingsArray = [];
+        const clickPrecisionArray = [];
+
+        // Track mouse movements during dot task
+        $('#dotArea').on('mousemove', function (event) {
+            const currentTime = performance.now();
+            const x = event.pageX - $('#dotArea').offset().left;
+            const y = event.pageY - $('#dotArea').offset().top;
+            mousePathDots.push({
+                time: currentTime,
+                x: x,
+                y: y
+            });
+        });
 
         function showDot() {
             if (dotCount >= totalDots) {
+                // Remove mousemove event listener
+                $('#dotArea').off('mousemove');
                 return;
             }
 
@@ -147,6 +171,14 @@
                 const reactionTime = clickTime - dotAppearTime;
                 timingsArray.push(reactionTime);
 
+                // Track click precision (distance from center)
+                const clickX = event.offsetX;
+                const clickY = event.offsetY;
+                const centerX = 25; // Dot radius is 25px
+                const centerY = 25;
+                const distance = Math.sqrt(Math.pow(clickX - centerX, 2) + Math.pow(clickY - centerY, 2));
+                clickPrecisionArray.push(distance);
+
                 dot.remove();
                 dotCount++;
                 totalShapeDotsCount++;
@@ -161,8 +193,9 @@
 
         showDot(); // Start with the first dot
 
-        // Store the timings array for the current attempt
-        dotTimings[currentAttempt - 1] = timingsArray; 
+        // Store the timings and click precision arrays for the current attempt
+        dotTimings[currentAttempt - 1] = timingsArray;
+        clickPrecision[currentAttempt - 1] = clickPrecisionArray;
     }
 
     // Function to start shape selection task
@@ -174,15 +207,14 @@
         const shapes = ['circle', 'square', 'triangle'];
         let shapeCount = 0;
         const timingsArray = [];
-        const mouseMovements = []; // Array to store mouse movement data
         const area = document.getElementById('shapeArea');
 
-        // Add mousemove event listener
+        // Track mouse movements during shape task
         $('#shapeArea').on('mousemove', function (event) {
             const currentTime = performance.now();
             const x = event.pageX - $('#shapeArea').offset().left;
             const y = event.pageY - $('#shapeArea').offset().top;
-            mouseMovements.push({
+            mousePathShapes.push({
                 time: currentTime,
                 x: x,
                 y: y
@@ -199,8 +231,8 @@
                 $('#shapeArea').off('mousemove');
 
                 // Store the mouseMovements data for this attempt
-                shapeTimings[currentAttempt - 1] = timingsArray;       // CHANGED
-                shapeMouseMovements[currentAttempt - 1] = mouseMovements; // CHANGED
+                shapeTimings[currentAttempt - 1] = timingsArray;
+                shapeMouseMovements[currentAttempt - 1] = mousePathShapes;
 
                 return;
             }
@@ -248,14 +280,17 @@
         }
 
         showShapes(); // Start with the first shape selection
-
-        // Store the timings array and mouse movements for the second attempt
-        shapeTimings[0] = timingsArray;
     }
 
     // Capture typing patterns
     $('#inputText').on('keydown', function (event) {
         let currentTime = new Date().getTime();
+
+        // Track backspace usage
+        if (event.key === "Backspace") {
+            backspaceCount++;
+        }
+
         // Time between key presses
         if (lastKeyTime !== null) {
             let interval = currentTime - lastKeyTime;
@@ -290,17 +325,6 @@
             }
         }
     });
-
-    // Prevent copy, paste, and cut in the input field
-    //$('#inputText').on('copy paste cut', function (e) {
-    //    e.preventDefault();
-    //    alert('Copying and pasting are disabled. Please type the text manually.');
-    //});
-
-    //// Disable context menu (right-click) on the input field
-    //$('#inputText').on('contextmenu', function (e) {
-    //    e.preventDefault();
-    //});s
 
     // Next Attempt button functionality
     $('#nextAttempt').click(async function () {
@@ -350,12 +374,12 @@
             $('#shapesContainer').empty();
             $('#shapeArea').off('mousemove');
 
-            // CHANGED: Show both dotArea & shapeArea
+            // Show both dotArea & shapeArea
             $('#dotArea').show();
             $('#shapeArea').show();
 
-            startDotSequence();     // CHANGED: always start a new dot sequence
-            startShapeSelection();  // CHANGED: always start a new shape selection
+            startDotSequence();     // Start a new dot sequence
+            startShapeSelection();  // Start a new shape selection
 
             $('#promptText').text(promptTexts[currentAttempt - 1]);
 
@@ -363,23 +387,26 @@
             if (currentAttempt === 3) {
                 $("#nextAttempt").text("SUBMIT");
             }
-            } else {
-                // All attempts completed, proceed to results
-                $(this).addClass('btn-animated');
-                $('#testSection').hide();
-                await saveDataToServer();
-              //  fetchDataAndCalculateResults();
-            }
+        } else {
+            // All attempts completed, proceed to results
+            $(this).addClass('btn-animated');
+            $('#testSection').hide();
+            await saveDataToServer();
+        }
     });
 
     async function saveDataToServer() {
-            const dataToSend = {
-                timings: timings.slice(0, 3),               // Sending first 3 attempts for timings
-                keyHoldTimes: keyHoldTimes.slice(0, 3),     // Sending first 3 attempts for key hold times
-                dotTimings: dotTimings.slice(0, 3),         // Sending first 3 attempts for dot timings
-                shapeTimings: shapeTimings.slice(0, 3),     // Sending first 3 attempts for shape timings
-                shapeMouseMovements: shapeMouseMovements.slice(0, 3)
-            };
+        const dataToSend = {
+            timings: timings.slice(0, 3),               // Sending first 3 attempts for timings
+            keyHoldTimes: keyHoldTimes.slice(0, 3),     // Sending first 3 attempts for key hold times
+            dotTimings: dotTimings.slice(0, 3),         // Sending first 3 attempts for dot timings
+            shapeTimings: shapeTimings.slice(0, 3),     // Sending first 3 attempts for shape timings
+            shapeMouseMovements: shapeMouseMovements.slice(0, 3),
+            backspaceCount: backspaceCount,              // Sending backspace count
+            mousePathDots: mousePathDots,                // Sending mouse path for dots
+            mousePathShapes: mousePathShapes,            // Sending mouse path for shapes
+            clickPrecision: clickPrecision               // Sending click precision
+        };
 
         var response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
         if (response != "") {
@@ -394,78 +421,10 @@
                 console.error("Error parsing response:", e);
                 AlertTost("error", "Unexpected error. Please try again.");
             }
-        }
-        else {
+        } else {
             AlertTost("error", "Try Again!!!");
         }
         $('#matchingPercent').text("100");
         $('#resultSection').show();
-    };
-
-    // Function to compare multiple attempts of key press intervals
-    async function compareMultipleAttempts(dataArray) {
-        let totalScore = 0;
-        let comparisons = 0;
-        for (let i = 0; i < dataArray.length - 1; i++) {
-            for (let j = i + 1; j < dataArray.length; j++) {
-                let score = await comparePatterns(dataArray[i], dataArray[j]);
-                totalScore += score;
-                comparisons++;
-            }
-        }
-        let averageScore = totalScore / comparisons;
-        return averageScore;
     }
-
-    // Function to compare multiple attempts of key hold times
-    async function compareMultipleKeyHolds(dataArray) {
-        let totalScore = 0;
-        let comparisons = 0;
-        for (let i = 0; i < dataArray.length - 1; i++) {
-            for (let j = i + 1; j < dataArray.length; j++) {
-                let durations1 = dataArray[i].map(item => item.duration);
-                let durations2 = dataArray[j].map(item => item.duration);
-                let score = await comparePatterns(durations1, durations2);
-                totalScore += score;
-                comparisons++;
-            }
-        }
-        let averageScore = totalScore / comparisons;
-        return averageScore;
-    }
-
-    // Function to compare action patterns (dot timings)
-    async function compareActions(dotTimingsArray) {
-        let actionScores = [];
-
-        // Compare dot timings from previous attempts
-        if (dotTimingsArray.length >= 2) {
-            let dotScore = await comparePatterns(dotTimingsArray[0], dotTimingsArray[1]);
-            actionScores.push(dotScore);
-        }
-
-        // Calculate average action score
-        let totalActionScore = actionScores.reduce((a, b) => a + b, 0);
-        let averageActionScore = totalActionScore / actionScores.length;
-        return averageActionScore;
-    }
-
-    // Function to compare patterns
-    async function comparePatterns(t1, t2) {
-        let minLength = Math.min(t1.length, t2.length);
-        let diffTotal = 0;
-        let maxInterval = 1000; // Max interval considered (in ms)
-        for (let i = 0; i < minLength; i++) {
-            let diff = Math.abs(t1[i] - t2[i]);
-            diffTotal += diff;
-        }
-        let avgDiff = diffTotal / minLength;
-        let matchingScore = Math.max(0, (1 - (avgDiff / maxInterval)) * 100);
-        return matchingScore;
-    }
-
-    // Try Again button functionality
-    $('#tryAgain').click(function () {
-        initializeTest();
-    });
 });
