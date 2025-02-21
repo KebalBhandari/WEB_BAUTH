@@ -53,6 +53,7 @@
         "The musician played a haunting melody on the grand piano."
     ];
 
+
     const totalDots = 5; // Number of dots to click
     const totalShapes = 5; // Number of shape selections
     const totalAttempts = 3;
@@ -66,11 +67,6 @@
     let shapeMouseMovements = []; // Mouse movement data during shape selection
     let promptTexts = []; // Prompt texts for each attempt
     let userInputs = []; // User inputs for each attempt
-    let backspaceCount = 0; // Track backspace usage
-    let mousePathDots = []; // Track mouse movement path during dot task
-    let mousePathShapes = []; // Track mouse movement path during shape task
-    let clickPrecision = []; // Track how close the user clicks to the center of dots
-    let errorsAndCorrections = []; // Track typing errors and corrections
 
     let lastKeyTime = null; // Last keydown time
 
@@ -84,11 +80,6 @@
         shapeMouseMovements = [];
         userInputs = [];
         promptTexts = [];
-        backspaceCount = 0;
-        mousePathDots = [];
-        mousePathShapes = [];
-        clickPrecision = [];
-        errorsAndCorrections = [];
         lastKeyTime = null;
         currentAttempt = 1;
         totalShapeDotsCount = 0;
@@ -116,10 +107,10 @@
         $('#testSection').show();
         $('#resultSection').hide();
 
-        // Start both dot + shape sequences on attempt 1
+        // CHANGED: Start both dot + shape sequences on attempt 1
         startDotSequence();
-        startShapeSelection();
-        $('#shapeArea').show();
+        startShapeSelection();  // CHANGED: show shape from the start
+        $('#shapeArea').show(); // CHANGED: reveal shape area now
     }
 
     initializeTest(); // Call on page load
@@ -135,24 +126,9 @@
         let dotCount = 0;
         const area = document.getElementById('dotArea');
         const timingsArray = [];
-        const clickPrecisionArray = [];
-
-        // Track mouse movements during dot task
-        $('#dotArea').on('mousemove', function (event) {
-            const currentTime = performance.now();
-            const x = event.pageX - $('#dotArea').offset().left;
-            const y = event.pageY - $('#dotArea').offset().top;
-            mousePathDots.push({
-                time: currentTime,
-                x: x,
-                y: y
-            });
-        });
 
         function showDot() {
             if (dotCount >= totalDots) {
-                // Remove mousemove event listener
-                $('#dotArea').off('mousemove');
                 return;
             }
 
@@ -171,14 +147,6 @@
                 const reactionTime = clickTime - dotAppearTime;
                 timingsArray.push(reactionTime);
 
-                // Track click precision (distance from center)
-                const clickX = event.offsetX;
-                const clickY = event.offsetY;
-                const centerX = 25; // Dot radius is 25px
-                const centerY = 25;
-                const distance = Math.sqrt(Math.pow(clickX - centerX, 2) + Math.pow(clickY - centerY, 2));
-                clickPrecisionArray.push(distance);
-
                 dot.remove();
                 dotCount++;
                 totalShapeDotsCount++;
@@ -193,9 +161,8 @@
 
         showDot(); // Start with the first dot
 
-        // Store the timings and click precision arrays for the current attempt
-        dotTimings[currentAttempt - 1] = timingsArray;
-        clickPrecision[currentAttempt - 1] = clickPrecisionArray;
+        // Store the timings array for the current attempt
+        dotTimings[currentAttempt - 1] = timingsArray; 
     }
 
     // Function to start shape selection task
@@ -207,14 +174,15 @@
         const shapes = ['circle', 'square', 'triangle'];
         let shapeCount = 0;
         const timingsArray = [];
+        const mouseMovements = []; // Array to store mouse movement data
         const area = document.getElementById('shapeArea');
 
-        // Track mouse movements during shape task
+        // Add mousemove event listener
         $('#shapeArea').on('mousemove', function (event) {
             const currentTime = performance.now();
             const x = event.pageX - $('#shapeArea').offset().left;
             const y = event.pageY - $('#shapeArea').offset().top;
-            mousePathShapes.push({
+            mouseMovements.push({
                 time: currentTime,
                 x: x,
                 y: y
@@ -231,8 +199,8 @@
                 $('#shapeArea').off('mousemove');
 
                 // Store the mouseMovements data for this attempt
-                shapeTimings[currentAttempt - 1] = timingsArray;
-                shapeMouseMovements[currentAttempt - 1] = mousePathShapes;
+                shapeTimings[currentAttempt - 1] = timingsArray;       // CHANGED
+                shapeMouseMovements[currentAttempt - 1] = mouseMovements; // CHANGED
 
                 return;
             }
@@ -280,17 +248,14 @@
         }
 
         showShapes(); // Start with the first shape selection
+
+        // Store the timings array and mouse movements for the second attempt
+        shapeTimings[0] = timingsArray;
     }
 
     // Capture typing patterns
     $('#inputText').on('keydown', function (event) {
         let currentTime = new Date().getTime();
-
-        // Track backspace usage
-        if (event.key === "Backspace") {
-            backspaceCount++;
-        }
-
         // Time between key presses
         if (lastKeyTime !== null) {
             let interval = currentTime - lastKeyTime;
@@ -325,6 +290,17 @@
             }
         }
     });
+
+    // Prevent copy, paste, and cut in the input field
+    //$('#inputText').on('copy paste cut', function (e) {
+    //    e.preventDefault();
+    //    alert('Copying and pasting are disabled. Please type the text manually.');
+    //});
+
+    //// Disable context menu (right-click) on the input field
+    //$('#inputText').on('contextmenu', function (e) {
+    //    e.preventDefault();
+    //});s
 
     // Next Attempt button functionality
     $('#nextAttempt').click(async function () {
@@ -374,12 +350,12 @@
             $('#shapesContainer').empty();
             $('#shapeArea').off('mousemove');
 
-            // Show both dotArea & shapeArea
+            // CHANGED: Show both dotArea & shapeArea
             $('#dotArea').show();
             $('#shapeArea').show();
 
-            startDotSequence();     // Start a new dot sequence
-            startShapeSelection();  // Start a new shape selection
+            startDotSequence();     // CHANGED: always start a new dot sequence
+            startShapeSelection();  // CHANGED: always start a new shape selection
 
             $('#promptText').text(promptTexts[currentAttempt - 1]);
 
@@ -387,26 +363,23 @@
             if (currentAttempt === 3) {
                 $("#nextAttempt").text("SUBMIT");
             }
-        } else {
-            // All attempts completed, proceed to results
-            $(this).addClass('btn-animated');
-            $('#testSection').hide();
-            await saveDataToServer();
-        }
+            } else {
+                // All attempts completed, proceed to results
+                $(this).addClass('btn-animated');
+                $('#testSection').hide();
+                await saveDataToServer();
+              //  fetchDataAndCalculateResults();
+            }
     });
 
     async function saveDataToServer() {
-        const dataToSend = {
-            timings: timings.slice(0, 3),               // Sending first 3 attempts for timings
-            keyHoldTimes: keyHoldTimes.slice(0, 3),     // Sending first 3 attempts for key hold times
-            dotTimings: dotTimings.slice(0, 3),         // Sending first 3 attempts for dot timings
-            shapeTimings: shapeTimings.slice(0, 3),     // Sending first 3 attempts for shape timings
-            shapeMouseMovements: shapeMouseMovements.slice(0, 3),
-            backspaceCount: backspaceCount,              // Sending backspace count
-            mousePathDots: mousePathDots,                // Sending mouse path for dots
-            mousePathShapes: mousePathShapes,            // Sending mouse path for shapes
-            clickPrecision: clickPrecision               // Sending click precision
-        };
+            const dataToSend = {
+                timings: timings.slice(0, 3),               // Sending first 3 attempts for timings
+                keyHoldTimes: keyHoldTimes.slice(0, 3),     // Sending first 3 attempts for key hold times
+                dotTimings: dotTimings.slice(0, 3),         // Sending first 3 attempts for dot timings
+                shapeTimings: shapeTimings.slice(0, 3),     // Sending first 3 attempts for shape timings
+                shapeMouseMovements: shapeMouseMovements.slice(0, 3)
+            };
 
         var response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
         if (response != "") {
@@ -421,10 +394,18 @@
                 console.error("Error parsing response:", e);
                 AlertTost("error", "Unexpected error. Please try again.");
             }
-        } else {
+        }
+        else {
             AlertTost("error", "Try Again!!!");
         }
         $('#matchingPercent').text("100");
         $('#resultSection').show();
-    }
+    };
+
+    
+
+    // Try Again button functionality
+    $('#tryAgain').click(function () {
+        initializeTest();
+    });
 });
