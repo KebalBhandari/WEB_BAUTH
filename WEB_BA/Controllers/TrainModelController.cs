@@ -82,6 +82,11 @@ namespace WEB_BA.Controllers
         {
             try
             {
+                if (userData == null)
+                {
+                    return StatusCode(200, new { Status = "ERROR", Message = "Data received Null, Try Again" });
+                }
+
                 string session = HttpContext.Session.GetString("TokenNo");
                 if (string.IsNullOrEmpty(session))
                 {

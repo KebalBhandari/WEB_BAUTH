@@ -69,7 +69,7 @@
 </div>
 
 <script type="text/javascript">
-        $(document).ready(function () {
+        $(document).ready(function() {
         // Sentences ranging from easy to hard
         const sentences = [
             "The quick brown fox jumps over the lazy dog.",
@@ -124,32 +124,35 @@
             "The musician played a haunting melody on the grand piano."
         ];
 
-
-        const totalDots = 5; // Number of dots to click
-        const totalShapes = 5; // Number of shape selections
+        const totalDots = 5;
         const totalAttempts = 1;
+        const DOT_SIZE = 30;
+        const EDGE_BUFFER = 20;
+
         let currentAttempt = 1;
-        let timings = []; // Time between key presses for all attempts
-        let keyHoldTimes = []; // Duration each key is held down for all attempts
+        let backspaceTimings = [];
+        let timings = [];
+        let keyHoldTimes = [];
         let dotTimings = [];
-        let dotMouseMovements = []; 
-        let promptTexts = []; // Prompt texts for each attempt
-        let userInputs = []; // User inputs for each attempt
+        let dotMouseMovements = [];
+        let promptTexts = [];
+        let userInputs = [];
+        let lastKeyTime = null;
 
-        let lastKeyTime = null; // Last keydown time
-
-        // Initialize the test
         function initializeTest() {
-            // Reset variables
+            // Reset all tracking arrays
             timings = [];
             keyHoldTimes = [];
+            backspaceTimings = [];
             dotTimings = [];
             dotMouseMovements = [];
             userInputs = [];
             promptTexts = [];
             lastKeyTime = null;
             currentAttempt = 1;
-            $('#inputText').val('');
+
+            // UI Reset
+            $('#inputText').val('').prop('disabled', false);
             $('#matchingPercent').text('0');
             $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
             $('#dotArea').show();
@@ -158,224 +161,224 @@
             $('#taskInstruction').text('Please click on the dots that appear and type the following text:');
             updateProgressBar(0);
 
-            // Randomly select sentences for each attempt
-            for (let i = 0; i < totalAttempts; i++) {
-                promptTexts.push(sentences[Math.floor(Math.random() * sentences.length)]);
-            }
+            // Initialize prompts
+            promptTexts = Array.from({ length: totalAttempts }, () =>
+                sentences[Math.floor(Math.random() * sentences.length)]
+            );
             $('#promptText').text(promptTexts[0]);
 
-            // Show test section and hide results
             $('#testSection').show();
             $('#resultSection').hide();
-
-            // Start dot sequence for the first attempt
             startDotSequence();
         }
 
-        initializeTest(); // Call on page load
-
-        // Function to update the progress bar
         function updateProgressBar(percentage) {
-            $('#taskProgressBar').css('width', percentage + '%');
-            $('#taskProgressBar').text(percentage + '%');
+            const rounded = Math.floor(percentage);
+            $('#taskProgressBar').css('width', rounded + '%').text(rounded + '%');
         }
 
-        // Function to start dot sequence
         function startDotSequence() {
-            let dotCount = 0;
             const area = document.getElementById('dotArea');
+            const areaRect = area.getBoundingClientRect();
             const timingsArray = [];
             const mouseMovements = [];
+            let dotCount = 0;
+            let lastMove = 0;
 
-            $('#dotArea').on('mousemove', function (event) {
-                const currentTime = performance.now();
-                const x = event.pageX - $('#dotArea').offset().left;
-                const y = event.pageY - $('#dotArea').offset().top;
-                mouseMovements.push({
-                    time: currentTime,
-                    x: x,
-                    y: y
-                });
-            });
+            // Event handlers
+            function handleClick(e) {
+                const dot = e.target.closest('.dot');
+                if (!dot) return;
 
-            function showDot() {
-                if (dotCount >= totalDots) {
-                    dotMouseMovements[0] = mouseMovements;
-                    return;
+                const clickTime = performance.now();
+                const appearTime = parseFloat(dot.dataset.appearTime);
+                timingsArray.push(clickTime - appearTime);
+
+                dot.remove();
+                dotCount++;
+                $('#dotCount').text(`Dots Clicked: ${dotCount}/${totalDots}`);
+                updateProgressBar((dotCount / totalDots) * 100);
+
+                if (dotCount < totalDots) {
+                    createDot();
+                } else {
+                    cleanup();
                 }
+            }
 
+            function handleMove(e) {
+                const now = performance.now();
+                if (now - lastMove < 33) return; // ~30fps throttling
+
+                lastMove = now;
+                mouseMovements.push({
+                    time: now,
+                    x: e.clientX - areaRect.left,
+                    y: e.clientY - areaRect.top
+                });
+            }
+
+            function calculatePosition() {
+                const maxX = area.clientWidth - DOT_SIZE - EDGE_BUFFER * 2;
+                const maxY = area.clientHeight - DOT_SIZE - EDGE_BUFFER * 2;
+                return {
+                    x: EDGE_BUFFER + Math.random() * maxX,
+                    y: EDGE_BUFFER + Math.random() * maxY
+                };
+            }
+
+            function createDot() {
                 const dot = document.createElement('div');
-                dot.classList.add('dot');
+                dot.className = 'dot';
+                const pos = calculatePosition();
 
-                const x = Math.random() * (area.clientWidth - 30);
-                const y = Math.random() * (area.clientHeight - 30);
-
-                dot.style.left = x + 'px';
-                dot.style.top = y + 'px';
-
-                const dotAppearTime = performance.now();
-                dot.addEventListener('click', function (event) {
-                    const clickTime = performance.now();
-                    const reactionTime = clickTime - dotAppearTime;
-                    timingsArray.push(reactionTime);
-
-                    dot.remove();
-                    dotCount++;
-                    $('#dotCount').text(`Dots Clicked: ${dotCount}/${totalDots}`);
-                    let progress = Math.floor((dotCount / totalDots) * 100);
-                    updateProgressBar(progress);
-                    showDot(); // Show next dot
+                Object.assign(dot.style, {
+                    left: `${pos.x}px`,
+                    top: `${pos.y}px`,
+                    width: `${DOT_SIZE}px`,
+                    height: `${DOT_SIZE}px`
                 });
 
+                dot.dataset.appearTime = performance.now();
                 area.appendChild(dot);
             }
 
-            showDot(); // Start with the first dot
+            function cleanup() {
+                area.removeEventListener('click', handleClick);
+                area.removeEventListener('mousemove', handleMove);
+                dotMouseMovements[currentAttempt - 1] = mouseMovements;
+                dotTimings[currentAttempt - 1] = timingsArray;
+            }
 
-            // Store the timings array for the current attempt
-            if (currentAttempt === 1) {
-                dotTimings[0] = timingsArray;
-            } 
+            // Initialize
+            area.addEventListener('click', handleClick);
+            area.addEventListener('mousemove', handleMove);
+            createDot();
         }
 
-        // Capture typing patterns
-        $('#inputText').on('keydown', function (event) {
-            let currentTime = new Date().getTime();
-            // Time between key presses
+        // Input handling
+        $('#inputText').on('keydown', function(event) {
+            const currentTime = Date.now();
+
+            // Backspace tracking
+            if (event.key === 'Backspace') {
+                (backspaceTimings[currentAttempt - 1] ??= []).push({
+                    time: currentTime,
+                    action: 'pressed'
+                });
+            }
+
+            // Key interval tracking
             if (lastKeyTime !== null) {
-                let interval = currentTime - lastKeyTime;
-                if (!timings[currentAttempt - 1]) {
-                    timings[currentAttempt - 1] = [];
-                }
-                timings[currentAttempt - 1].push(interval);
+                (timings[currentAttempt - 1] ??= []).push(currentTime - lastKeyTime);
             }
             lastKeyTime = currentTime;
 
-            // Record keydown time for key hold duration
-            if (!keyHoldTimes[currentAttempt - 1]) {
-                keyHoldTimes[currentAttempt - 1] = [];
-            }
-            keyHoldTimes[currentAttempt - 1].push({
+            // Key hold tracking
+            (keyHoldTimes[currentAttempt - 1] ??= []).push({
                 keydownTime: currentTime,
                 keyupTime: null,
                 duration: null
             });
         });
 
-        $('#inputText').on('keyup', function (event) {
-            let currentTime = new Date().getTime();
+        $('#inputText').on('keyup', function(event) {
+            const currentTime = Date.now();
 
-            // Find the last keyHoldTimes entry with null keyupTime
-            let keyDataArray = keyHoldTimes[currentAttempt - 1];
-            for (let i = keyDataArray.length - 1; i >= 0; i--) {
-                if (keyDataArray[i].keyupTime === null) {
-                    keyDataArray[i].keyupTime = currentTime;
-                    keyDataArray[i].duration = keyDataArray[i].keyupTime - keyDataArray[i].keydownTime;
+            // Backspace release tracking
+            if (event.key === 'Backspace') {
+                (backspaceTimings[currentAttempt - 1] ??= []).push({
+                    time: currentTime,
+                    action: 'released'
+                });
+            }
+
+            // Update key hold duration
+            const keyData = keyHoldTimes[currentAttempt - 1];
+            for (let i = keyData.length - 1; i >= 0; i--) {
+                if (!keyData[i].keyupTime) {
+                    keyData[i].keyupTime = currentTime;
+                    keyData[i].duration = currentTime - keyData[i].keydownTime;
                     break;
                 }
             }
         });
 
-        // Prevent copy, paste, and cut in the input field
-        //$('#inputText').on('copy paste cut', function (e) {
-        //    e.preventDefault();
-        //    alert('Copying and pasting are disabled. Please type the text manually.');
-        //});
+        // Security measures
+        $('#inputText').on('copy paste cut contextmenu', function(e) {
+            e.preventDefault();
+            if (e.type !== 'contextmenu') {
+                alert('Copying and pasting are disabled. Please type manually.');
+            }
+        });
 
-        //// Disable context menu (right-click) on the input field
-        //$('#inputText').on('contextmenu', function (e) {
-        //    e.preventDefault();
-        //});s
-
-        // Next Attempt button functionality
-        $('#nextAttempt').click(async function () {
+        // Submission handler
+        $('#nextAttempt').click(async function() {
             const userInput = $('#inputText').val().trim();
-            if (userInput === '') {
-                alert('Please type the text before proceeding.');
-                return;
-            }
-            if (userInput !== promptTexts[currentAttempt - 1].trim()) {
-                alert('Your input does not match the prompt text. Please try again.');
-                return;
-            }
-            if (!timings[currentAttempt - 1] || timings[currentAttempt - 1].length < 1) {
-                alert('Not enough typing data captured. Please try typing again.');
-                return;
-            }
-            if (!keyHoldTimes[currentAttempt - 1] || keyHoldTimes[currentAttempt - 1].length < 1) {
-                alert('Not enough key hold data captured. Please try typing again.');
-                return;
-            }
-            if (currentAttempt === 1) {
-                let dotIndex = currentAttempt === 1 ? 0 : 1;
-                if (!dotTimings[dotIndex] || dotTimings[dotIndex].length < totalDots) {
-                    alert(`You need to click all ${totalDots} dots before proceeding.`);
-                    return;
-                }
-                else{
-                    userInputs.push(userInput);
-                $('#inputText').val('');
-                updateProgressBar(0);
-                $(this).addClass('btn-animated');
-                    $('#testSection').hide();
-                    await saveDataToServer();
-                }
-            }
-            else{
-                userInputs.push(userInput);
-                $('#inputText').val('');
-                updateProgressBar(0);
-                $(this).addClass('btn-animated');
-                $('#testSection').hide();
+            const $btn = $(this);
+
+            // Validation checks
+            if (!userInput) return alert('Please type the text before proceeding.');
+            if (userInput !== promptTexts[currentAttempt - 1].trim())
+                return alert('Input does not match the prompt text.');
+            if ((dotTimings[currentAttempt - 1]?.length ?? 0) < totalDots)
+                return alert(`Click all ${totalDots} dots before proceeding.`);
+
+            // Prepare for submission
+            userInputs.push(userInput);
+            $btn.addClass('btn-animated');
+            $('#testSection').hide();
+            $('#inputText').prop('disabled', true);
+
+            try {
                 await saveDataToServer();
+            } catch (error) {
+                console.error('Submission error:', error);
+                AlertTost("error", "Submission failed. Please try again.");
             }
         });
 
         async function saveDataToServer() {
-                const dataToSend = {
-                    timings: timings.slice(0, 1),               // Sending first 3 attempts for timings
-                    keyHoldTimes: keyHoldTimes.slice(0, 1),     // Sending first 3 attempts for key hold times
-                    dotTimings: dotTimings.slice(0, 1),
-                    shapeMouseMovements: dotMouseMovements // Sending first 3 attempts for dot timing
-                };
+            const dataToSend = {
+                timings: sanitizeArray(timings),
+                keyHoldTimes: sanitizeArray(keyHoldTimes),
+                backspaceTimings: sanitizeArray(backspaceTimings),
+                dotTimings: sanitizeArray(dotTimings),
+                dotMouseMovements: sanitizeArray(dotMouseMovements),
+                userInputs: userInputs.filter(Boolean)
+            };
 
-            var response = await AjaxCall("/TrainModel/PredictData", dataToSend);
-            if (response != "") {
-                try {
-                    // Parse the JSON response
-                    var result = JSON.parse(response);
+            try {
+                const response = await AjaxCall("/TrainModel/PredictData", dataToSend);
+                const result = JSON.parse(response);
 
-                    if (result.status === "SUCCESS") {
-                        var confidence = result.confidence;
-                        var isAnomaly = result.isAnomaly;
+                if (result.status === "SUCCESS") {
+                    $('#matchingPercent').text((result.confidence * 100).toFixed(2));
+                    $('#resultSection').show();
 
-                        // Update the UI based on the confidence and anomaly detection
-                        $('#matchingPercent').text((confidence * 100).toFixed(2));
-                        $('#resultSection').show();
-
-                        if (isAnomaly) {
-                            AlertTost("warning", "Anomaly detected! Please verify the user.");
-                        } else {
-                            AlertTost("success", "User behavior matches the expected pattern.");
-                        }
-                    } else {
-                        AlertTost("error", "Prediction failed. Please try again.");
-                    }
-                } catch (e) {
-                    console.error("Error parsing response:", e);
-                    AlertTost("error", "Unexpected error. Please try again.");
+                    AlertTost(
+                        result.isAnomaly ? "warning" : "success",
+                        result.isAnomaly
+                            ? "Anomaly detected! Verify user."
+                            : "Behavior matches expected pattern."
+                    );
+                } else {
+                    throw new Error(result.message || "Prediction failed");
                 }
-            } else {
-                AlertTost("error", "No response from server. Please try again.");
+            } catch (e) {
+                console.error("Server error:", e);
+                AlertTost("error", e.message || "Request failed");
             }
-        };
+        }
 
-              
+        function sanitizeArray(data) {
+            return (Array.isArray(data) ? data : [])
+                .filter(entry => Array.isArray(entry) ? entry.length > 0 : !!entry);
+        }
 
-        // Try Again button functionality
-        $('#tryAgain').click(function () {
-            initializeTest();
-        });
+        // Reset functionality
+        $('#tryAgain').click(initializeTest);
+        initializeTest();
     });
 
 </script>
