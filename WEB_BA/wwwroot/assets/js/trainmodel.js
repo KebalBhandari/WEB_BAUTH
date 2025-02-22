@@ -53,28 +53,27 @@
         "The musician played a haunting melody on the grand piano."
     ];
 
-
     const totalDots = 5; // Number of dots to click
     const totalShapes = 5; // Number of shape selections
     const totalAttempts = 3;
     let currentAttempt = 1;
     let totalShapeDotsCount = 0;
 
-    let timings = []; // Time between key presses for all attempts
-    let keyHoldTimes = []; // Duration each key is held down for all attempts
-    let dotTimings = []; // Array to hold dot timings for attempts 1 and 3
-    let shapeTimings = []; // Array to hold shape selection timings for attempt 2
-    let shapeMouseMovements = []; // Mouse movement data during shape selection
-    let promptTexts = []; // Prompt texts for each attempt
-    let userInputs = []; // User inputs for each attempt
+    let timings = [];
+    let keyHoldTimes = [];
+    let backspaceTimings = []; // Track backspace usage
+    let dotTimings = [];
+    let shapeTimings = [];
+    let shapeMouseMovements = [];
+    let promptTexts = [];
+    let userInputs = [];
 
-    let lastKeyTime = null; // Last keydown time
+    let lastKeyTime = null;
 
-    // Initialize the test
     function initializeTest() {
-        // Reset
         timings = [];
         keyHoldTimes = [];
+        backspaceTimings = []; // Reset backspace tracking
         dotTimings = [];
         shapeTimings = [];
         shapeMouseMovements = [];
@@ -83,8 +82,6 @@
         lastKeyTime = null;
         currentAttempt = 1;
         totalShapeDotsCount = 0;
-
-        // Clear UI
         $('#inputText').val('');
         $('#matchingPercent').text('0');
         $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
@@ -96,9 +93,9 @@
         $('#taskInstruction').text(
             'Please complete the dots, shapes, and type the following text:'
         );
+        $("#nextAttempt").text("Next Attempt");
         updateProgressBar(0);
 
-        // Pick random sentences for each attempt
         for (let i = 0; i < totalAttempts; i++) {
             promptTexts.push(sentences[Math.floor(Math.random() * sentences.length)]);
         }
@@ -107,21 +104,18 @@
         $('#testSection').show();
         $('#resultSection').hide();
 
-        // CHANGED: Start both dot + shape sequences on attempt 1
         startDotSequence();
-        startShapeSelection();  // CHANGED: show shape from the start
-        $('#shapeArea').show(); // CHANGED: reveal shape area now
+        startShapeSelection();
+        $('#shapeArea').show();
     }
 
-    initializeTest(); // Call on page load
+    initializeTest();
 
-    // Function to update the progress bar
     function updateProgressBar(percentage) {
         $('#taskProgressBar').css('width', percentage + '%');
         $('#taskProgressBar').text(percentage + '%');
     }
 
-    // Function to start dot sequence
     function startDotSequence() {
         let dotCount = 0;
         const area = document.getElementById('dotArea');
@@ -159,13 +153,11 @@
             area.appendChild(dot);
         }
 
-        showDot(); // Start with the first dot
+        showDot();
 
-        // Store the timings array for the current attempt
-        dotTimings[currentAttempt - 1] = timingsArray; 
+        dotTimings[currentAttempt - 1] = timingsArray;
     }
 
-    // Function to start shape selection task
     function startShapeSelection() {
         $('#shapeArea').empty().append('<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>');
         $('#taskInstruction').text('Please select the correct shapes and type the following text:');
@@ -174,10 +166,9 @@
         const shapes = ['circle', 'square', 'triangle'];
         let shapeCount = 0;
         const timingsArray = [];
-        const mouseMovements = []; // Array to store mouse movement data
+        const mouseMovements = [];
         const area = document.getElementById('shapeArea');
 
-        // Add mousemove event listener
         $('#shapeArea').on('mousemove', function (event) {
             const currentTime = performance.now();
             const x = event.pageX - $('#shapeArea').offset().left;
@@ -191,16 +182,13 @@
 
         function showShapes() {
             if (shapeCount >= totalShapes) {
-                // All shapes selected, clear shapes
                 $('#shapesContainer').empty();
                 $('#shapeQuestion').text('All shapes selected.');
 
-                // Remove mousemove event listener
                 $('#shapeArea').off('mousemove');
 
-                // Store the mouseMovements data for this attempt
-                shapeTimings[currentAttempt - 1] = timingsArray;       // CHANGED
-                shapeMouseMovements[currentAttempt - 1] = mouseMovements; // CHANGED
+                shapeTimings[currentAttempt - 1] = timingsArray;
+                shapeMouseMovements[currentAttempt - 1] = mouseMovements;
 
                 return;
             }
@@ -228,18 +216,15 @@
 
                     const isCorrect = shapeType === targetShape ? 1 : 0;
                     if (isCorrect) {
-                        // Correct selection
                         timingsArray.push({ reactionTime, isCorrect });
                         shapeCount++;
                         totalShapeDotsCount++;
                         $('#shapeCount').text(`Shapes Selected: ${shapeCount}/${totalShapes}`);
                         let progress = Math.floor((totalShapeDotsCount / (totalDots + totalShapes)) * 100);
                         updateProgressBar(progress);
-                        showShapes(); // Proceed to next shape selection
+                        showShapes();
                     } else {
-                        // Incorrect selection
                         alert('Wrong shape clicked. Please select the correct shape.');
-                        // Do not count the shape, let user try again
                     }
                 });
 
@@ -247,16 +232,13 @@
             });
         }
 
-        showShapes(); // Start with the first shape selection
+        showShapes();
 
-        // Store the timings array and mouse movements for the second attempt
         shapeTimings[0] = timingsArray;
     }
 
-    // Capture typing patterns
     $('#inputText').on('keydown', function (event) {
         let currentTime = new Date().getTime();
-        // Time between key presses
         if (lastKeyTime !== null) {
             let interval = currentTime - lastKeyTime;
             if (!timings[currentAttempt - 1]) {
@@ -266,7 +248,6 @@
         }
         lastKeyTime = currentTime;
 
-        // Record keydown time for key hold duration
         if (!keyHoldTimes[currentAttempt - 1]) {
             keyHoldTimes[currentAttempt - 1] = [];
         }
@@ -275,6 +256,17 @@
             keyupTime: null,
             duration: null
         });
+
+        // Track backspace key
+        if (event.key === 'Backspace') {
+            if (!backspaceTimings[currentAttempt - 1]) {
+                backspaceTimings[currentAttempt - 1] = [];
+            }
+            backspaceTimings[currentAttempt - 1].push({
+                time: currentTime,
+                action: 'pressed'
+            });
+        }
     });
 
     $('#inputText').on('keyup', function (event) {
@@ -289,20 +281,19 @@
                 break;
             }
         }
+
+        // Track backspace key release
+        if (event.key === 'Backspace') {
+            if (!backspaceTimings[currentAttempt - 1]) {
+                backspaceTimings[currentAttempt - 1] = [];
+            }
+            backspaceTimings[currentAttempt - 1].push({
+                time: currentTime,
+                action: 'released'
+            });
+        }
     });
 
-    // Prevent copy, paste, and cut in the input field
-    //$('#inputText').on('copy paste cut', function (e) {
-    //    e.preventDefault();
-    //    alert('Copying and pasting are disabled. Please type the text manually.');
-    //});
-
-    //// Disable context menu (right-click) on the input field
-    //$('#inputText').on('contextmenu', function (e) {
-    //    e.preventDefault();
-    //});s
-
-    // Next Attempt button functionality
     $('#nextAttempt').click(async function () {
         const userInput = $('#inputText').val().trim();
         if (userInput === '') {
@@ -350,36 +341,37 @@
             $('#shapesContainer').empty();
             $('#shapeArea').off('mousemove');
 
-            // CHANGED: Show both dotArea & shapeArea
             $('#dotArea').show();
             $('#shapeArea').show();
 
-            startDotSequence();     // CHANGED: always start a new dot sequence
-            startShapeSelection();  // CHANGED: always start a new shape selection
+            startDotSequence();
+            startShapeSelection();
 
             $('#promptText').text(promptTexts[currentAttempt - 1]);
 
-            // After the second attempt, send data to the server
             if (currentAttempt === 3) {
                 $("#nextAttempt").text("SUBMIT");
             }
-            } else {
-                // All attempts completed, proceed to results
-                $(this).addClass('btn-animated');
-                $('#testSection').hide();
-                await saveDataToServer();
-              //  fetchDataAndCalculateResults();
-            }
+        } else {
+            $(this).addClass('btn-animated');
+            $('#testSection').hide();
+            await saveDataToServer();
+        }
     });
 
     async function saveDataToServer() {
-            const dataToSend = {
-                timings: timings.slice(0, 3),               // Sending first 3 attempts for timings
-                keyHoldTimes: keyHoldTimes.slice(0, 3),     // Sending first 3 attempts for key hold times
-                dotTimings: dotTimings.slice(0, 3),         // Sending first 3 attempts for dot timings
-                shapeTimings: shapeTimings.slice(0, 3),     // Sending first 3 attempts for shape timings
-                shapeMouseMovements: shapeMouseMovements.slice(0, 3)
-            };
+
+        const dataToSend = {
+            timings: removeInvalidAttempts(timings ?? []),
+            keyHoldTimes: removeInvalidAttempts(keyHoldTimes ?? []),
+            backspaceTimings: removeInvalidAttempts(backspaceTimings ?? []),
+            dotTimings: removeInvalidAttempts(dotTimings ?? []),
+            shapeTimings: removeInvalidAttempts(shapeTimings ?? []),
+            shapeMouseMovements: removeInvalidAttempts(shapeMouseMovements ?? [])
+        };
+
+
+        console.log("Data being sent to server:", dataToSend);
 
         var response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
         if (response != "") {
@@ -387,24 +379,48 @@
                 var result = JSON.parse(response);
                 if (result.status === "SUCCESS") {
                     AlertTost("success", result.message);
+                    $('#matchingPercent').text("100");
+                    $('#resultSection').show();
                 } else {
                     AlertTost("error", result.message);
+                    $('#matchingPercent').text("Error");
+                    $('#resultSection').show();
                 }
             } catch (e) {
                 console.error("Error parsing response:", e);
                 AlertTost("error", "Unexpected error. Please try again.");
+                $('#matchingPercent').text("Error");
+                $('#resultSection').show();
             }
-        }
-        else {
+        } else {
             AlertTost("error", "Try Again!!!");
         }
-        $('#matchingPercent').text("100");
-        $('#resultSection').show();
     };
 
-    
+    $('#inputText').on('copy paste cut', function (e) {
+        e.preventDefault();
+        alert('Copying and pasting are disabled. Please type the text manually.');
+    });
 
-    // Try Again button functionality
+    $('#inputText').on('contextmenu', function (e) {
+        e.preventDefault();
+    });
+
+    function removeInvalidAttempts(data) {
+        if (!Array.isArray(data)) return [];
+
+        return data.filter(attempt => {
+            if (!attempt || typeof attempt !== 'object') return false;
+            for (let key in attempt) {
+                if (attempt[key] === null || attempt[key] === undefined) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+
     $('#tryAgain').click(function () {
         initializeTest();
     });
