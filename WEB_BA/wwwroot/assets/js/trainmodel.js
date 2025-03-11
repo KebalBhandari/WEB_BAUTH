@@ -182,7 +182,7 @@
                     if (lastX !== null && lastY !== null && lastTime !== null) {
                         const distance = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
                         const timeDelta = currentTime - lastTime;
-                        velocity = distance / timeDelta; 
+                        velocity = distance / timeDelta;
                     }
 
                     let slope = 0;
@@ -190,9 +190,9 @@
                         const deltaX = x - lastX;
                         const deltaY = y - lastY;
                         if (deltaX !== 0) {
-                            slope = deltaY / deltaX; 
+                            slope = deltaY / deltaX;
                         } else {
-                            slope = 0; 
+                            slope = 0;
                         }
                     }
 
@@ -228,7 +228,7 @@
                 shapes.sort(() => Math.random() - 0.5).forEach(shapeType => {
                     const shape = $('<div></div>').addClass(`shape ${shapeType}`).css({
                         left: `${Math.random() * ($('#shapeArea')[0].clientWidth - 60)}px`,
-                        top: `${Math.random() * ($('#shapeArea')[0].clientHeight - 60)}px`, 
+                        top: `${Math.random() * ($('#shapeArea')[0].clientHeight - 60)}px`,
                         position: 'absolute'
                     });
 
@@ -385,7 +385,6 @@
 
             if (!this.validateData(dataToSend)) {
                 AlertTost("error", "Incomplete data. Please complete all attempts.");
-                $('#resultSection').show();
                 return;
             }
 
@@ -397,16 +396,19 @@
         removeInvalidAttempts(data) {
             if (!Array.isArray(data)) return [];
 
-    return data.filter(attempt => {
-        if (!attempt || typeof attempt !== 'object') return false;
-        for (let key in attempt) {
-            if (attempt[key] === null || attempt[key] === undefined) {
-                return false;
-            }
-        }
-        return true;
-    });
-},
+            return data.filter(attempt => {
+                if (!attempt || typeof attempt !== 'object') return false;
+
+                // Check if any value in the attempt is null or undefined
+                for (let key in attempt) {
+                    if (attempt[key] === null || attempt[key] === undefined) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+        },
 
         validateData(data) {
             return (
@@ -449,7 +451,6 @@
         }
     };
 
-    // Event Bindings
     $('#nextAttempt').click(async function () {
         const userInput = $('#inputText').val().trim();
         if (!userInput) {
@@ -457,15 +458,10 @@
             return;
         }
 
-        // Detect language only when submitting
         try {
             const detectedLanguage = await detectLanguage(userInput);
             console.log("Detected Language:", detectedLanguage);
-
-            // Save detected language in BehavioralAuth state
             BehavioralAuth.detectedLanguages[BehavioralAuth.currentAttempt - 1] = detectedLanguage;
-
-            // Proceed with submission
             BehavioralAuth.nextAttempt();
         } catch (error) {
             console.error("Error detecting language:", error);
@@ -475,7 +471,6 @@
 
     $('#tryAgain').click(() => BehavioralAuth.init());
 
-    // Global Error Handler
     window.onerror = (msg, url, lineNo, columnNo, error) => {
         console.error(`Error: ${msg}\nAt: ${url}:${lineNo}:${columnNo}\nStack: ${error.stack}`);
     };
