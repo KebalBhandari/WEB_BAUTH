@@ -75,14 +75,6 @@
                                         <p class="text-muted">Don't have an account? <a href="/Signup" class="text-muted ms-1"><b>Sign Up</b></a></p>
                                     </div>
                                 </div>
-                                <div class="my-2 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-neutral-300 after:mt-0.5 after:flex-1 after:border-t after:border-neutral-300 dark:before:border-neutral-500 dark:after:border-neutral-500">
-                                    <p class="mx-4 mb-0 text-center font-semibold dark:text-neutral-200">
-                                        OR
-                                    </p>
-                                </div>
-                                <div class="mb-3 mb-0 text-center">
-                                    <button type="button" onclick="location.href='@Url.Action("ExternalLogin", "Login")'" class="btn btn-outline-secondary"><i class="uil-lock-access"></i> Continue with Keycloak</button>
-                                </div>
                             </form>
                         </div>
                     </div>
@@ -121,25 +113,23 @@
             const validationSpan = document.querySelector("span[asp-validation-for='Password']");
             const submitButton = document.getElementById("condition_button");
 
-            // Function to check validation state and update button
             function updateButtonState() {
                 if (validationSpan && validationSpan.innerHTML.trim() !== "") {
                      $('.indicator-label').hide();
-                    submitButton.disabled = true; // Disable button if validation message is visible
+                    submitButton.disabled = true;
                 } else {
-                    submitButton.disabled = false; // Enable button otherwise
+                    submitButton.disabled = false;
                 }
             }
 
-            // Attach event listeners to detect changes
             passwordField.addEventListener("input", updateButtonState);
-
-            // Initial check
             updateButtonState();
         });
 
 
-        $('#condition_button').click(function () {
+        $('#condition_button').click(function (event) {
+            event.preventDefault();
+
             if ($('#emailaddress').val() == "") {
                 AlertTost('error', 'Email is required !!!');
             }
@@ -147,10 +137,10 @@
                 AlertTost('error', 'Password is required !!!');
             }
             else {
-                $('.uil-sign-out-alt"').hide();
+                $('.uil-sign-out-alt').hide();
                 $('.indicator-label').hide();
                 $('.indicator-progress').show();
-                $('#RequestLogin').submit();
+                $('form').submit();
             }
         });
     </script>

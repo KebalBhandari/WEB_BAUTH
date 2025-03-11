@@ -53,375 +53,450 @@
         "The musician played a haunting melody on the grand piano."
     ];
 
-    const totalDots = 5; // Number of dots to click
-    const totalShapes = 5; // Number of shape selections
-    const totalAttempts = 3;
-    let currentAttempt = 1;
-    let totalShapeDotsCount = 0;
+    const BehavioralAuth = {
+        // Constants
+        TOTAL_DOTS: 5,
+        TOTAL_SHAPES: 5,
+        TOTAL_ATTEMPTS: 3,
 
-    let timings = [];
-    let keyHoldTimes = [];
-    let backspaceTimings = []; // Track backspace usage
-    let dotTimings = [];
-    let shapeTimings = [];
-    let shapeMouseMovements = [];
-    let promptTexts = [];
-    let userInputs = [];
+        // State
+        currentAttempt: 1,
+        totalShapeDotsCount: 0,
+        timings: [],
+        keyHoldTimes: [],
+        backspaceTimings: [],
+        dotTimings: [],
+        shapeTimings: [],
+        shapeMouseMovements: [],
+        promptTexts: [],
+        userInputs: [],
+        detectedLanguages: [],
+        lastKeyTime: 0,
+        lastMoveTime: 0,
 
-    let lastKeyTime = null;
+        // Initialization
+        init() {
+            this.resetState();
+            $('#testSection').show();
+            $('#resultSection').hide();
+            this.startAttempt();
+        },
 
-    function initializeTest() {
-        timings = [];
-        keyHoldTimes = [];
-        backspaceTimings = []; // Reset backspace tracking
-        dotTimings = [];
-        shapeTimings = [];
-        shapeMouseMovements = [];
-        userInputs = [];
-        promptTexts = [];
-        lastKeyTime = null;
-        currentAttempt = 1;
-        totalShapeDotsCount = 0;
-        $('#inputText').val('');
-        $('#matchingPercent').text('0');
-        $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
-        $('#shapesContainer').empty();
-        $('#dotArea').show();
-        $('#shapeArea').show();
-        $('#nextAttempt').removeClass('btn-animated');
-        $('#currentAttempt').text(currentAttempt);
-        $('#taskInstruction').text(
-            'Please complete the dots, shapes, and type the following text:'
-        );
-        $("#nextAttempt").text("Next Attempt");
-        updateProgressBar(0);
-
-        for (let i = 0; i < totalAttempts; i++) {
-            promptTexts.push(sentences[Math.floor(Math.random() * sentences.length)]);
-        }
-        $('#promptText').text(promptTexts[0]);
-
-        $('#testSection').show();
-        $('#resultSection').hide();
-
-        startDotSequence();
-        startShapeSelection();
-        $('#shapeArea').show();
-    }
-
-    initializeTest();
-
-    function updateProgressBar(percentage) {
-        $('#taskProgressBar').css('width', percentage + '%');
-        $('#taskProgressBar').text(percentage + '%');
-    }
-
-    function startDotSequence() {
-        let dotCount = 0;
-        const area = document.getElementById('dotArea');
-        const timingsArray = [];
-
-        function showDot() {
-            if (dotCount >= totalDots) {
-                return;
-            }
-
-            const dot = document.createElement('div');
-            dot.classList.add('dot');
-
-            const x = Math.random() * (area.clientWidth - 50);
-            const y = Math.random() * (area.clientHeight - 50);
-
-            dot.style.left = x + 'px';
-            dot.style.top = y + 'px';
-
-            const dotAppearTime = performance.now();
-            dot.addEventListener('click', function (event) {
-                const clickTime = performance.now();
-                const reactionTime = clickTime - dotAppearTime;
-                timingsArray.push(reactionTime);
-
-                dot.remove();
-                dotCount++;
-                totalShapeDotsCount++;
-                $('#dotCount').text(`Dots Clicked: ${dotCount}/${totalDots}`);
-                let progress = Math.floor((totalShapeDotsCount / (totalDots + totalShapes)) * 100);
-                updateProgressBar(progress);
-                showDot(); // Show next dot
-            });
-
-            area.appendChild(dot);
-        }
-
-        showDot();
-
-        dotTimings[currentAttempt - 1] = timingsArray;
-    }
-
-    function startShapeSelection() {
-        $('#shapeArea').empty().append('<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>');
-        $('#taskInstruction').text('Please select the correct shapes and type the following text:');
-        updateProgressBar(0);
-
-        const shapes = ['circle', 'square', 'triangle'];
-        let shapeCount = 0;
-        const timingsArray = [];
-        const mouseMovements = [];
-        const area = document.getElementById('shapeArea');
-
-        $('#shapeArea').on('mousemove', function (event) {
-            const currentTime = performance.now();
-            const x = event.pageX - $('#shapeArea').offset().left;
-            const y = event.pageY - $('#shapeArea').offset().top;
-            mouseMovements.push({
-                time: currentTime,
-                x: x,
-                y: y
-            });
-        });
-
-        function showShapes() {
-            if (shapeCount >= totalShapes) {
-                $('#shapesContainer').empty();
-                $('#shapeQuestion').text('All shapes selected.');
-
-                $('#shapeArea').off('mousemove');
-
-                shapeTimings[currentAttempt - 1] = timingsArray;
-                shapeMouseMovements[currentAttempt - 1] = mouseMovements;
-
-                return;
-            }
-            $('#shapesContainer').empty();
-
-            const targetShape = shapes[Math.floor(Math.random() * shapes.length)];
-            $('#shapeQuestion').text(`Please select the ${targetShape}.`);
-
-            const shapeAppearTime = performance.now();
-            const shuffledShapes = shapes.sort(() => Math.random() - 0.5);
-            shuffledShapes.forEach(shapeType => {
-                const shape = document.createElement('div');
-                shape.classList.add('shape', shapeType);
-
-                const x = Math.random() * (area.clientWidth - 60);
-                const y = Math.random() * (area.clientHeight - 60);
-
-                shape.style.left = x + 'px';
-                shape.style.top = y + 'px';
-                shape.style.position = 'absolute';
-
-                shape.addEventListener('click', function (event) {
-                    const clickTime = performance.now();
-                    const reactionTime = clickTime - shapeAppearTime;
-
-                    const isCorrect = shapeType === targetShape ? 1 : 0;
-                    if (isCorrect) {
-                        timingsArray.push({ reactionTime, isCorrect });
-                        shapeCount++;
-                        totalShapeDotsCount++;
-                        $('#shapeCount').text(`Shapes Selected: ${shapeCount}/${totalShapes}`);
-                        let progress = Math.floor((totalShapeDotsCount / (totalDots + totalShapes)) * 100);
-                        updateProgressBar(progress);
-                        showShapes();
-                    } else {
-                        alert('Wrong shape clicked. Please select the correct shape.');
-                    }
-                });
-
-                $('#shapesContainer').append(shape);
-            });
-        }
-
-        showShapes();
-
-        shapeTimings[0] = timingsArray;
-    }
-
-    $('#inputText').on('keydown', function (event) {
-        let currentTime = new Date().getTime();
-        if (lastKeyTime !== null) {
-            let interval = currentTime - lastKeyTime;
-            if (!timings[currentAttempt - 1]) {
-                timings[currentAttempt - 1] = [];
-            }
-            timings[currentAttempt - 1].push(interval);
-        }
-        lastKeyTime = currentTime;
-
-        if (!keyHoldTimes[currentAttempt - 1]) {
-            keyHoldTimes[currentAttempt - 1] = [];
-        }
-        keyHoldTimes[currentAttempt - 1].push({
-            keydownTime: currentTime,
-            keyupTime: null,
-            duration: null
-        });
-
-        // Track backspace key
-        if (event.key === 'Backspace') {
-            if (!backspaceTimings[currentAttempt - 1]) {
-                backspaceTimings[currentAttempt - 1] = [];
-            }
-            backspaceTimings[currentAttempt - 1].push({
-                time: currentTime,
-                action: 'pressed'
-            });
-        }
-    });
-
-    $('#inputText').on('keyup', function (event) {
-        let currentTime = new Date().getTime();
-
-        // Find the last keyHoldTimes entry with null keyupTime
-        let keyDataArray = keyHoldTimes[currentAttempt - 1];
-        for (let i = keyDataArray.length - 1; i >= 0; i--) {
-            if (keyDataArray[i].keyupTime === null) {
-                keyDataArray[i].keyupTime = currentTime;
-                keyDataArray[i].duration = keyDataArray[i].keyupTime - keyDataArray[i].keydownTime;
-                break;
-            }
-        }
-
-        // Track backspace key release
-        if (event.key === 'Backspace') {
-            if (!backspaceTimings[currentAttempt - 1]) {
-                backspaceTimings[currentAttempt - 1] = [];
-            }
-            backspaceTimings[currentAttempt - 1].push({
-                time: currentTime,
-                action: 'released'
-            });
-        }
-    });
-
-    $('#nextAttempt').click(async function () {
-        const userInput = $('#inputText').val().trim();
-        if (userInput === '') {
-            alert('Please type the text before proceeding.');
-            return;
-        }
-        if (userInput !== promptTexts[currentAttempt - 1].trim()) {
-            alert('Your input does not match the prompt text. Please try again.');
-            return;
-        }
-        if (!timings[currentAttempt - 1] || timings[currentAttempt - 1].length < 1) {
-            alert('Not enough typing data captured. Please try typing again.');
-            return;
-        }
-        if (!keyHoldTimes[currentAttempt - 1] || keyHoldTimes[currentAttempt - 1].length < 1) {
-            alert('Not enough key hold data captured. Please try typing again.');
-            return;
-        }
-        let dotArray = dotTimings[currentAttempt - 1];
-        if (!dotArray || dotArray.length < totalDots) {
-            alert(`You need to click all ${totalDots} dots before proceeding.`);
-            return;
-        }
-
-        // Shapes:
-        let shapeArray = shapeTimings[currentAttempt - 1];
-        if (!shapeArray || shapeArray.length < totalShapes) {
-            alert(`You need to select the shape ${totalShapes} times before proceeding.`);
-            return;
-        }
-
-        userInputs.push(userInput);
-
-        if (currentAttempt < totalAttempts) {
-            // Prepare for the next attempt
-            currentAttempt++;
-            totalShapeDotsCount = 0;
-            lastKeyTime = null;
+        resetState() {
+            this.currentAttempt = 1;
+            this.totalShapeDotsCount = 0;
+            this.timings = [];
+            this.keyHoldTimes = [];
+            this.backspaceTimings = [];
+            this.dotTimings = [];
+            this.shapeTimings = [];
+            this.shapeMouseMovements = [];
+            this.userInputs = [];
+            this.detectedLanguages = [];
+            this.lastKeyTime = 0;
+            this.lastMoveTime = 0;
             $('#inputText').val('');
-            $('#currentAttempt').text(currentAttempt);
-            updateProgressBar(0);
-
-            $('#dotArea').empty()
-                .append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
+            $('#matchingPercent').text('0');
+            $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
             $('#shapesContainer').empty();
-            $('#shapeArea').off('mousemove');
-
             $('#dotArea').show();
             $('#shapeArea').show();
+            $('#nextAttempt').removeClass('btn-animated');
+            this.updateUI();
+            this.promptTexts = Array.from({ length: this.TOTAL_ATTEMPTS }, () =>
+                sentences[Math.floor(Math.random() * sentences.length)]
+            );
+        },
 
-            startDotSequence();
-            startShapeSelection();
+        updateUI() {
+            $('#currentAttempt').text(this.currentAttempt);
+            $('#taskInstruction').text(
+                'Step 1: Click all 5 dots. Step 2: Select 5 correct shapes. Step 3: Type the text exactly as shown.'
+            );
+            $('#nextAttempt').text(this.currentAttempt === this.TOTAL_ATTEMPTS ? 'SUBMIT' : 'Next Attempt');
+            this.updateProgressBar(0);
+            $('#promptText').text(this.promptTexts[this.currentAttempt - 1]);
+        },
 
-            $('#promptText').text(promptTexts[currentAttempt - 1]);
+        // Progress Bar
+        updateProgressBar(percentage) {
+            $('#taskProgressBar').css('width', `${percentage}%`).text(`${percentage}%`);
+        },
 
-            if (currentAttempt === 3) {
-                $("#nextAttempt").text("SUBMIT");
+        // Dot Sequence
+        startDotSequence() {
+            let dotCount = 0;
+            const area = $('#dotArea')[0];
+            const timingsArray = [];
+
+            const showDot = () => {
+                if (dotCount >= this.TOTAL_DOTS) {
+                    $('#dotCount').text('All dots clicked successfully!');
+                    return;
+                }
+                const dot = $('<div class="dot"></div>');
+                const x = Math.random() * (area.clientWidth - 50);
+                const y = Math.random() * (area.clientHeight - 50);
+                dot.css({ left: `${x}px`, top: `${y}px` });
+                const dotAppearTime = performance.now();
+
+                dot.on('click touchstart', (event) => {
+                    event.preventDefault();
+                    const clickTime = performance.now();
+                    timingsArray.push(clickTime - dotAppearTime);
+                    dot.remove();
+                    dotCount++;
+                    this.totalShapeDotsCount++;
+                    $('#dotCount').text(`Dots Clicked: ${dotCount}/${this.TOTAL_DOTS}`);
+                    this.updateProgress();
+                    showDot();
+                });
+
+                $('#dotArea').append(dot);
+            };
+
+            showDot();
+            this.dotTimings[this.currentAttempt - 1] = timingsArray;
+        },
+
+        // Shape Selection
+        startShapeSelection() {
+            $('#shapeArea').empty().append(
+                '<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>'
+            );
+            const shapes = ['circle', 'square', 'triangle'];
+            let shapeCount = 0;
+            const timingsArray = [];
+            const mouseMovements = [];
+            let lastX = null, lastY = null, lastTime = null;
+
+            // Mouse movement tracking
+            $('#shapeArea').off('mousemove').on('mousemove', (event) => {
+                const currentTime = performance.now();
+                if (currentTime - this.lastMoveTime > 50) { // Sample every 50ms
+                    const x = event.pageX - $('#shapeArea').offset().left;
+                    const y = event.pageY - $('#shapeArea').offset().top;
+
+                    // Calculate velocity
+                    let velocity = 0;
+                    if (lastX !== null && lastY !== null && lastTime !== null) {
+                        const distance = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
+                        const timeDelta = currentTime - lastTime;
+                        velocity = distance / timeDelta; 
+                    }
+
+                    let slope = 0;
+                    if (lastX !== null && lastY !== null) {
+                        const deltaX = x - lastX;
+                        const deltaY = y - lastY;
+                        if (deltaX !== 0) {
+                            slope = deltaY / deltaX; 
+                        } else {
+                            slope = 0; 
+                        }
+                    }
+
+                    mouseMovements.push({
+                        time: currentTime,
+                        x,
+                        y,
+                        velocity,
+                        slope
+                    });
+
+                    lastX = x;
+                    lastY = y;
+                    lastTime = currentTime;
+                    this.lastMoveTime = currentTime;
+                }
+            });
+
+            const showShapes = () => {
+                if (shapeCount >= this.TOTAL_SHAPES) {
+                    $('#shapesContainer').empty();
+                    $('#shapeQuestion').text('All shapes selected.');
+                    $('#shapeArea').off('mousemove');
+                    this.shapeTimings[this.currentAttempt - 1] = timingsArray;
+                    this.shapeMouseMovements[this.currentAttempt - 1] = mouseMovements;
+                    return;
+                }
+                $('#shapesContainer').empty();
+                const targetShape = shapes[Math.floor(Math.random() * shapes.length)];
+                $('#shapeQuestion').text(`Please select the ${targetShape}.`);
+
+                const shapeAppearTime = performance.now();
+                shapes.sort(() => Math.random() - 0.5).forEach(shapeType => {
+                    const shape = $('<div></div>').addClass(`shape ${shapeType}`).css({
+                        left: `${Math.random() * ($('#shapeArea')[0].clientWidth - 60)}px`,
+                        top: `${Math.random() * ($('#shapeArea')[0].clientHeight - 60)}px`, 
+                        position: 'absolute'
+                    });
+
+                    shape.on('click touchstart', (event) => {
+                        event.preventDefault();
+                        const clickTime = performance.now();
+                        const reactionTime = clickTime - shapeAppearTime;
+                        if (shapeType === targetShape) {
+                            timingsArray.push({ reactionTime, isCorrect: 1 });
+                            shapeCount++;
+                            this.totalShapeDotsCount++;
+                            $('#shapeCount').text(`Shapes Selected: ${shapeCount}/${this.TOTAL_SHAPES}`);
+                            this.updateProgress();
+                            showShapes();
+                        } else {
+                            alert('Wrong shape clicked. Please select the correct shape.');
+                        }
+                    });
+
+                    $('#shapesContainer').append(shape);
+                });
+            };
+
+            showShapes();
+        },
+
+        // Progress Calculation
+        updateProgress() {
+            const userInput = $('#inputText').val().trim();
+            const typingProgress = (userInput.length / this.promptTexts[this.currentAttempt - 1].length) * this.TOTAL_DOTS;
+            const progress = Math.floor(
+                (this.totalShapeDotsCount + typingProgress) / (this.TOTAL_DOTS + this.TOTAL_SHAPES + this.TOTAL_DOTS) * 100
+            );
+            this.updateProgressBar(progress);
+        },
+
+        // Typing Events
+        setupTypingEvents() {
+            $('#inputText').off('keydown keyup').on('keydown', (event) => {
+                const currentTime = Date.now();
+                if (this.lastKeyTime !== null) {
+                    this.timings[this.currentAttempt - 1] = this.timings[this.currentAttempt - 1] || [];
+                    this.timings[this.currentAttempt - 1].push(currentTime - this.lastKeyTime);
+                }
+                this.lastKeyTime = currentTime;
+
+                this.keyHoldTimes[this.currentAttempt - 1] = this.keyHoldTimes[this.currentAttempt - 1] || [];
+                this.keyHoldTimes[this.currentAttempt - 1].push({ keydownTime: currentTime, keyupTime: null, duration: null });
+
+                if (event.key === 'Backspace') {
+                    this.backspaceTimings[this.currentAttempt - 1] = this.backspaceTimings[this.currentAttempt - 1] || [];
+                    this.backspaceTimings[this.currentAttempt - 1].push({ time: currentTime, action: 'pressed' });
+                }
+            }).on('keyup', (event) => {
+                const currentTime = Date.now();
+                const keyDataArray = this.keyHoldTimes[this.currentAttempt - 1];
+                for (let i = keyDataArray.length - 1; i >= 0; i--) {
+                    if (keyDataArray[i].keyupTime === null) {
+                        keyDataArray[i].keyupTime = currentTime;
+                        keyDataArray[i].duration = currentTime - keyDataArray[i].keydownTime;
+                        break;
+                    }
+                }
+                if (event.key === 'Backspace') {
+                    this.backspaceTimings[this.currentAttempt - 1] = this.backspaceTimings[this.currentAttempt - 1] || [];
+                    this.backspaceTimings[this.currentAttempt - 1].push({ time: currentTime, action: 'released' });
+                }
+
+                this.updateProgress();
+            }).on('copy paste cut contextmenu', (e) => {
+                e.preventDefault();
+                alert('Copying, pasting, and right-clicking are disabled. Please type manually.');
+            });
+        },
+
+        // Attempt Handling
+        startAttempt() {
+            this.updateUI();
+            this.startDotSequence();
+            this.startShapeSelection();
+            this.setupTypingEvents();
+        },
+
+        async nextAttempt() {
+            const userInput = $('#inputText').val().trim();
+            if (!this.validateInput(userInput)) return;
+
+            this.userInputs.push(userInput);
+            if (this.currentAttempt < this.TOTAL_ATTEMPTS) {
+                this.currentAttempt++;
+                this.totalShapeDotsCount = 0;
+                this.lastKeyTime = null;
+                $('#inputText').val('');
+                this.startAttempt();
+            } else {
+                $('#nextAttempt').addClass('btn-animated');
+                $('#testSection').hide();
+                await this.saveDataToServer();
             }
-        } else {
-            $(this).addClass('btn-animated');
-            $('#testSection').hide();
-            await saveDataToServer();
+        },
+
+        validateInput(userInput) {
+            if (!userInput) {
+                alert('Please type the text before proceeding.');
+                return false;
+            }
+            const similarity = this.calculateSimilarity(userInput, this.promptTexts[this.currentAttempt - 1]);
+            if (similarity < 90) {
+                alert(`Text is only ${similarity.toFixed(2)}% similar. Please try again.`);
+                return false;
+            }
+            if (!this.timings[this.currentAttempt - 1]?.length || !this.keyHoldTimes[this.currentAttempt - 1]?.length) {
+                alert('Not enough typing data captured. Please try typing again.');
+                return false;
+            }
+            if (this.dotTimings[this.currentAttempt - 1]?.length < this.TOTAL_DOTS) {
+                alert(`You need to click all ${this.TOTAL_DOTS} dots before proceeding.`);
+                return false;
+            }
+            if (this.shapeTimings[this.currentAttempt - 1]?.length < this.TOTAL_SHAPES) {
+                alert(`You need to select the shape ${this.TOTAL_SHAPES} times before proceeding.`);
+                return false;
+            }
+            const totalTime = this.timings[this.currentAttempt - 1].reduce((a, b) => a + b, 0);
+            if (totalTime < 1000) {
+                alert('Typing speed seems unnatural. Please try again.');
+                return false;
+            }
+            return true;
+        },
+
+        calculateSimilarity(s1, s2) {
+            const longer = s1.length > s2.length ? s1 : s2;
+            const shorter = s1.length > s2.length ? s2 : s1;
+            let matches = 0;
+            for (let i = 0; i < shorter.length; i++) {
+                if (longer[i] === shorter[i]) matches++;
+            }
+            return (matches / longer.length) * 100;
+        },
+
+        // Data Saving
+        async saveDataToServer() {
+            const dataToSend = {
+                tokenNo: localStorage.getItem('userId') || this.generateUniqueId(),
+                timings: this.removeInvalidAttempts(this.timings),
+                keyHoldTimes: this.removeInvalidAttempts(this.keyHoldTimes),
+                backSpaceTimings: this.removeInvalidAttempts(this.backspaceTimings),
+                dotTimings: this.removeInvalidAttempts(this.dotTimings),
+                shapeTimings: this.removeInvalidAttempts(this.shapeTimings),
+                shapeMouseMovements: this.removeInvalidAttempts(this.shapeMouseMovements),
+                detectedLanguages: this.detectedLanguages
+            };
+
+            if (!this.validateData(dataToSend)) {
+                AlertTost("error", "Incomplete data. Please complete all attempts.");
+                $('#resultSection').show();
+                return;
+            }
+
+            console.log("Data being sent to server:", dataToSend);
+            const response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
+            this.handleServerResponse(response);
+        },
+
+        removeInvalidAttempts(data) {
+            if (!Array.isArray(data)) return [];
+
+    return data.filter(attempt => {
+        if (!attempt || typeof attempt !== 'object') return false;
+        for (let key in attempt) {
+            if (attempt[key] === null || attempt[key] === undefined) {
+                return false;
+            }
         }
+        return true;
     });
+},
 
-    async function saveDataToServer() {
+        validateData(data) {
+            return (
+                data.timings.length === this.TOTAL_ATTEMPTS &&
+                data.keyHoldTimes.length === this.TOTAL_ATTEMPTS &&
+                data.dotTimings.length === this.TOTAL_ATTEMPTS &&
+                data.shapeTimings.length === this.TOTAL_ATTEMPTS
+            );
+        },
 
-        const dataToSend = {
-            timings: removeInvalidAttempts(timings ?? []),
-            keyHoldTimes: removeInvalidAttempts(keyHoldTimes ?? []),
-            backspaceTimings: removeInvalidAttempts(backspaceTimings ?? []),
-            dotTimings: removeInvalidAttempts(dotTimings ?? []),
-            shapeTimings: removeInvalidAttempts(shapeTimings ?? []),
-            shapeMouseMovements: removeInvalidAttempts(shapeMouseMovements ?? [])
-        };
-
-
-        console.log("Data being sent to server:", dataToSend);
-
-        var response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
-        if (response != "") {
-            try {
-                var result = JSON.parse(response);
-                if (result.status === "SUCCESS") {
-                    AlertTost("success", result.message);
-                    $('#matchingPercent').text("100");
-                    $('#resultSection').show();
-                } else {
-                    AlertTost("error", result.message);
+        handleServerResponse(response) {
+            if (response) {
+                try {
+                    const result = JSON.parse(response);
+                    if (result.status === "SUCCESS") {
+                        AlertTost("success", result.message);
+                        $('#matchingPercent').text(result.confidenceScore || "100");
+                        $('#resultSection').show();
+                    } else {
+                        AlertTost("error", result.message);
+                        $('#matchingPercent').text("Error");
+                        $('#resultSection').show();
+                    }
+                } catch (e) {
+                    console.error("Error parsing response:", e);
+                    AlertTost("error", "Unexpected error. Please try again.");
                     $('#matchingPercent').text("Error");
                     $('#resultSection').show();
                 }
-            } catch (e) {
-                console.error("Error parsing response:", e);
-                AlertTost("error", "Unexpected error. Please try again.");
-                $('#matchingPercent').text("Error");
-                $('#resultSection').show();
+            } else {
+                AlertTost("error", "Try Again!!!");
             }
-        } else {
-            AlertTost("error", "Try Again!!!");
+        },
+
+        generateUniqueId() {
+            return 'xxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
         }
     };
 
-    $('#inputText').on('copy paste cut', function (e) {
-        e.preventDefault();
-        alert('Copying and pasting are disabled. Please type the text manually.');
+    // Event Bindings
+    $('#nextAttempt').click(async function () {
+        const userInput = $('#inputText').val().trim();
+        if (!userInput) {
+            alert("Please type the text before submitting.");
+            return;
+        }
+
+        // Detect language only when submitting
+        try {
+            const detectedLanguage = await detectLanguage(userInput);
+            console.log("Detected Language:", detectedLanguage);
+
+            // Save detected language in BehavioralAuth state
+            BehavioralAuth.detectedLanguages[BehavioralAuth.currentAttempt - 1] = detectedLanguage;
+
+            // Proceed with submission
+            BehavioralAuth.nextAttempt();
+        } catch (error) {
+            console.error("Error detecting language:", error);
+            alert("Language detection failed. Please try again.");
+        }
     });
 
-    $('#inputText').on('contextmenu', function (e) {
-        e.preventDefault();
-    });
+    $('#tryAgain').click(() => BehavioralAuth.init());
 
-    function removeInvalidAttempts(data) {
-        if (!Array.isArray(data)) return [];
+    // Global Error Handler
+    window.onerror = (msg, url, lineNo, columnNo, error) => {
+        console.error(`Error: ${msg}\nAt: ${url}:${lineNo}:${columnNo}\nStack: ${error.stack}`);
+    };
 
-        return data.filter(attempt => {
-            if (!attempt || typeof attempt !== 'object') return false;
-            for (let key in attempt) {
-                if (attempt[key] === null || attempt[key] === undefined) {
-                    return false;
-                }
-            }
-            return true;
+    BehavioralAuth.init();
+
+    async function detectLanguage(text) {
+        const response = await fetch('https://ws.detectlanguage.com/0.2/detect', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer a7c8eba8949c03ecb5ac91cf5d1c8497',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ q: text })
         });
+
+        const data = await response.json();
+        if (data.data && data.data.detections.length > 0) {
+            return data.data.detections[0].language; // Returns detected language code (e.g., "en", "fr")
+        } else {
+            throw new Error("No language detected");
+        }
     }
-
-
-    $('#tryAgain').click(function () {
-        initializeTest();
-    });
 });

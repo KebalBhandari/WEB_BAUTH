@@ -23,6 +23,7 @@ namespace WEB_BA
             services.AddDistributedMemoryCache();
             services.AddRazorPages();
             services.AddScoped<LoginController>();
+
             services.AddControllersWithViews()
                 .AddRazorRuntimeCompilation()
                 .AddViewOptions(options =>
@@ -46,39 +47,6 @@ namespace WEB_BA
                 options.LoginPath = "/Login";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
                 options.SlidingExpiration = true;
-            })
-            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
-            {
-                options.Authority = "https://keycloak.kebalbhandari.com.np:8443/realms/DTI";
-                options.ClientId = "web-security";
-                options.ClientSecret = "U7YaQIfjxLOBvIGLlxscWJMizFdD9Kpo";
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.SaveTokens = true;
-                options.GetClaimsFromUserInfoEndpoint = true;
-                options.RequireHttpsMetadata = false;
-                options.CallbackPath = "/signin-oidc";
-                options.SignedOutCallbackPath = "/signout-callback-oidc";
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    NameClaimType = "preferred_username",
-                    RoleClaimType = "roles"
-                };
-                options.Events = new OpenIdConnectEvents
-                {
-                    OnRedirectToIdentityProvider = context =>
-                    {
-                        // This will force re-auth on Keycloak side
-                        context.ProtocolMessage.Prompt = "login";
-                        return Task.CompletedTask;
-                    },
-                    OnRedirectToIdentityProviderForSignOut = context =>
-                    {
-                        var logoutUri = $"{options.Authority}/protocol/openid-connect/logout?client_id={options.ClientId}&logout_uri={context.Request.Scheme}://{context.Request.Host}{options.SignedOutCallbackPath}";
-                        context.Response.Redirect(logoutUri);
-                        context.HandleResponse();
-                        return Task.CompletedTask;
-                    }
-                };
             });
         }
 
