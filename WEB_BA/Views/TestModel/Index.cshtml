@@ -54,7 +54,8 @@
                                         </div>
 
                                         <div id="resultSection" class="mt-5" style="display: none;">
-                                            <p class="result">Matching Percentage: <span id="matchingPercent">100</span>%</p>
+                                            <p class="resultAnomoly">Is Anomaly: <span id="matchingPercentAnomaly">False</span></p>
+                                            <p class="result">Confidence Percentage: <span id="matchingPercent">100</span>%</p>
                                             <button class="btn btn-secondary" id="tryAgain">Try Again</button>
                                         </div>
                                     </div>
@@ -461,6 +462,8 @@
 
                 if (result.status === "SUCCESS") {
                     $('#matchingPercent').text(result.confidencePercentage.toFixed(2));
+                    $('#matchingPercentAnomaly').text(result.isAnomaly);
+                    
                     $('#resultSection').show();
 
                     AlertTost(
