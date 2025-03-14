@@ -1,6 +1,14 @@
 ﻿.result {
     font-size: 1.2rem;
     font-weight: bold;
+    text-transform: capitalize;
+}
+
+.resultAnomoly
+{
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: capitalize;
 }
 
 #areasContainer {
