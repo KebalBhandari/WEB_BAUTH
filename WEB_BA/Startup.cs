@@ -1,16 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using WEB_BA.Controllers;
 
 namespace WEB_BA
 {
     public class Startup
     {
-        //public static string baseApiUrl = "https://api.kebalbhandari.com.np";
-        public static string baseApiUrl = "http://localhost:7244";
+        public static string baseApiUrl = "https://api.kebalbhandari.com.np";
+        //public static string baseApiUrl = "http://localhost:7244";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;

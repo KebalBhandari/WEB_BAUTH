@@ -170,7 +170,6 @@
             const mouseMovements = [];
             let lastX = null, lastY = null, lastTime = null;
 
-            // Mouse movement tracking
             $('#shapeArea').off('mousemove').on('mousemove', (event) => {
                 const currentTime = performance.now();
                 if (currentTime - this.lastMoveTime > 50) { // Sample every 50ms
@@ -267,7 +266,23 @@
 
         // Typing Events
         setupTypingEvents() {
-            $('#inputText').off('keydown keyup').on('keydown', (event) => {
+            const inputElement = document.getElementById('inputText');
+
+            // Remove existing listeners if they exist
+            if (this.keydownHandler) {
+                inputElement.removeEventListener('keydown', this.keydownHandler);
+            }
+            if (this.keyupHandler) {
+                inputElement.removeEventListener('keyup', this.keyupHandler);
+            }
+            if (this.preventDefaultHandler) {
+                ['copy', 'paste', 'cut', 'contextmenu'].forEach(eventType => {
+                    inputElement.removeEventListener(eventType, this.preventDefaultHandler);
+                });
+            }
+
+            // Define new handlers
+            this.keydownHandler = (event) => {
                 const currentTime = Date.now();
                 if (this.lastKeyTime !== null) {
                     this.timings[this.currentAttempt - 1] = this.timings[this.currentAttempt - 1] || [];
@@ -282,7 +297,9 @@
                     this.backspaceTimings[this.currentAttempt - 1] = this.backspaceTimings[this.currentAttempt - 1] || [];
                     this.backspaceTimings[this.currentAttempt - 1].push({ time: currentTime, action: 'pressed' });
                 }
-            }).on('keyup', (event) => {
+            };
+
+            this.keyupHandler = (event) => {
                 const currentTime = Date.now();
                 const keyDataArray = this.keyHoldTimes[this.currentAttempt - 1];
                 for (let i = keyDataArray.length - 1; i >= 0; i--) {
@@ -298,9 +315,18 @@
                 }
 
                 this.updateProgress();
-            }).on('copy paste cut contextmenu', (e) => {
+            };
+
+            this.preventDefaultHandler = (e) => {
                 e.preventDefault();
                 alert('Copying, pasting, and right-clicking are disabled. Please type manually.');
+            };
+
+            // Add new listeners
+            inputElement.addEventListener('keydown', this.keydownHandler);
+            inputElement.addEventListener('keyup', this.keyupHandler);
+            ['copy', 'paste', 'cut', 'contextmenu'].forEach(eventType => {
+                inputElement.addEventListener(eventType, this.preventDefaultHandler);
             });
         },
 
