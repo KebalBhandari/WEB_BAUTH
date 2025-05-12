@@ -56,11 +56,11 @@
                                             <button class="btn btn-primary btn-animated" id="nextAttempt">Submit and Test</button>
                                         </div>
                                         <div id="resultSection" class="mt-2" style="display: none;">
-                                            <p class="resultAnomoly">Is Anomaly: <span id="matchingPercentAnomaly">False</span></p>
-                                            <p class="result">Confidence Percentage: <span id="matchingPercent">0.00</span>%</p>
-                                            <p class="result">Average Anamoly Score: <span id="AverageAnamolyScore">0.00</span></p>
-                                            <p class="result">Max. Anamoly Score: <span id="MaxAnamolyScore">0.00</span></p>
-                                            
+                                            <p class="resultAnomaly">🔍 <strong>Is Anomaly:</strong> <span id="matchingPercentAnomaly">False</span></p>
+                                            <p class="result">✅ <strong>Confidence:</strong> <span id="matchingPercent">0.00</span>% (<span id="confidenceLabel">Very Confident</span>)</p>
+                                            <p class="result">📊 <strong>Average Anomaly Score:</strong> <span id="AverageAnomalyScore">0.0000</span></p>
+                                            <p class="result">📈 <strong>Max. Anomaly Score:</strong> <span id="MaxAnomalyScore">0.0000</span></p>
+                                            <p class="result">🧮 <strong>Anomalous Attempts:</strong> <span id="TotalAnomalyCount">0</span></p>
                                             <button class="btn btn-secondary" id="tryAgain">Try Again</button>
                                         </div>
                                     </div>
@@ -464,19 +464,21 @@
                     const response = await AjaxCall("/TrainModel/PredictData", dataToSend);
                     const result = JSON.parse(response);
                         if (result.status === "SUCCESS") {
-                            $('#matchingPercent').text(result.confidencePercentage.toFixed(2));
-                            $('#matchingPercentAnomaly').text(result.isAnomaly);
-                            $('#AverageAnamolyScore').text(result.avgAnomalyScore);
-                            $('#MaxAnamolyScore').text(result.maxAnomalyScore);
+    $('#matchingPercent').text(result.confidencePercentage.toFixed(2) + '%');
+    $('#confidenceLabel').text(result.confidenceLabel);
+    $('#matchingPercentAnomaly').text(result.isAnomaly ? 'Yes' : 'No');
+    $('#AverageAnomalyScore').text(result.avgAnomalyScore.toFixed(4));
+    $('#MaxAnomalyScore').text(result.maxAnomalyScore.toFixed(4));
+    $('#TotalAnomalyCount').text(result.anomalousAttempts);
 
-                            $('#resultSection').show();
+    $('#resultSection').show();
 
-                            AlertTost(
-                                result.IsAnomaly ? "warning" : "success",
-                                result.IsAnomaly
-                                    ? "Anomaly detected! Verify user."
-                                    : "Behavior matches expected pattern."
-                            );
+                            const toastType = result.isAnomaly ? "warning" : "success";
+                            const toastMessage = result.isAnomaly
+                                ? `⚠️ Anomaly detected!\nConfidence: ${result.confidencePercentage.toFixed(2)}% (${result.confidenceLabel})\nUser behavior deviates from the expected pattern.`
+                                : `✅ Behavior matches expected pattern.\nConfidence: ${result.confidencePercentage.toFixed(2)}% (${result.confidenceLabel})`;
+
+    AlertTost(toastType, toastMessage);
     } else {
         ('#testSection').show();
         throw new Error(result.Message || "Prediction failed");
