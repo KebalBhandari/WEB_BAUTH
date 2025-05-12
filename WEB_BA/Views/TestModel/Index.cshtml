@@ -30,29 +30,31 @@
                                         <div id="testSection">
                                             <p>[ <span id="taskInstruction">Please click on the dots that appear and type the following text:</span> ] </p>
                                             <div class="progress">
-                                                <div id="taskProgressBar" class="progress-bar progress-bar-striped" role="progressbar"
-                                                     style="width: 0%;">
-                                                    0%
+                                                <div id="taskProgressBar" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%;">0%</div>
+                                            </div>
+
+                                            <div id="areasContainer">
+                                                <div id="dotArea" class="instructions">
+                                                    Click on the dots as they appear.
+                                                    <div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>
+                                                </div>
+
+                                                <div id="shapeArea" class="instructions" style="display: none;">
+                                                    <p id="shapeQuestion" class="mb-2"></p>
+                                                    <div id="shapesContainer"></div>
+                                                    <div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>
                                                 </div>
                                             </div>
-                                            <div id="dotArea" class="instructions">
-                                                Click on the dots as they appear.
-                                                <div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>
-                                            </div>
-                                            <div id="shapeArea" class="instructions" style="display: none;">
-                                                <p id="shapeQuestion" class="mb-2"></p>
-                                                <div id="shapesContainer"></div>
-                                                <div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>
-                                            </div>
+
                                             <div class="mb-3">
-                                                <label for="inputText" class="form-label">Your Input:</label><blockquote class="blockquote">
+                                                <label for="inputText" class="form-label">Your Input:</label>
+                                                <blockquote class="blockquote">
                                                     <p id="promptText" class="prompt-text"></p>
                                                 </blockquote>
                                                 <textarea class="form-control" id="inputText" rows="3" placeholder="Type here..."></textarea>
                                             </div>
                                             <button class="btn btn-primary btn-animated" id="nextAttempt">Submit and Test</button>
                                         </div>
-
                                         <div id="resultSection" class="mt-2" style="display: none;">
                                             <p class="resultAnomoly">Is Anomaly: <span id="matchingPercentAnomaly">False</span></p>
                                             <p class="result">Confidence Percentage: <span id="matchingPercent">100</span>%</p>
@@ -70,453 +72,454 @@
 </div>
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        const sentences = [
-            "The quick brown fox jumps over the lazy dog.",
-            "Pack my box with five dozen liquor jugs.",
-            "How razorback-jumping frogs can level six piqued gymnasts!",
-            "Sympathizing would fix Quaker objectives.",
-            "Crazy Frederick bought many very exquisite opal jewels.",
-            "Jaded zombies acted quaintly but kept driving their oxen forward.",
-            "Amazingly few discotheques provide jukeboxes.",
-            "Grumpy wizards make toxic brew for the evil queen and jack.",
-            "The five boxing wizards jump quickly.",
-            "Big Fuji waves pitch enzymed kex liquor jugs.",
-            "Lazy dogs often sleep in the sunniest spot in the yard.",
-            "Twelve jovial men quickly pick five ripe mangoes.",
-            "Bright yellow flowers bloom during springtime.",
-            "Jack quietly observed the mesmerizing sunset from the hilltop.",
-            "Few daring explorers venture into the uncharted forest.",
-            "Ducks gracefully glide across the shimmering pond.",
-            "A brisk wind swept across the barren desert landscape.",
-            "Seven curious cats climbed up the ancient oak tree.",
-            "Heavy clouds gathered ominously over the distant mountains.",
-            "Gleaming stars twinkled brightly in the midnight sky.",
-            "Smart students solve tricky problems with logical thinking.",
-            "Vast green fields stretch endlessly beyond the horizon.",
-            "Colorful birds sing melodious tunes at dawn.",
-            "Ten swift deer raced across the open meadow.",
-            "Ancient ruins reveal secrets of a forgotten civilization.",
-            "The bustling market overflowed with vibrant goods and lively chatter.",
-            "Early morning hikers reached the summit before sunrise.",
-            "Crystal-clear water cascades down the rocky cliff.",
-            "Golden sands glisten under the warm tropical sun.",
-            "Mysterious shadows danced along the cobblestone streets.",
-            "Adventurous kids built an elaborate treehouse in the backyard.",
-            "The chef skillfully prepared a delicious five-course meal.",
-            "A sudden thunderstorm caught everyone by surprise.",
-            "Enthusiastic fans cheered loudly for their favorite team.",
-            "Lush gardens display a dazzling array of exotic flowers.",
-            "Careful planning ensures a smooth and successful event.",
-            "Fierce winds howled through the narrow mountain pass.",
-            "The library offers a quiet haven for avid readers.",
-            "Tall skyscrapers define the city’s iconic skyline.",
-            "Playful dolphins leaped gracefully out of the water.",
-            "Whimsical paintings adorn the walls of the cozy cafe.",
-            "The scent of fresh bread wafted through the bustling bakery.",
-            "Bright lanterns illuminated the festive village square.",
-            "Determined athletes train tirelessly for the upcoming marathon.",
-            "Fluffy snowflakes gently blanketed the sleepy town.",
-            "Inventive scientists work on groundbreaking new technologies.",
-            "The majestic eagle soared high above the rugged cliffs.",
-            "Serene lakes reflect the beauty of the surrounding forest.",
-            "Friendly neighbors gathered for an evening barbecue.",
-            "The musician played a haunting melody on the grand piano."
-        ];
+        $(document).ready(function() {
+            const sentences = [
+                "The quick brown fox jumps over the lazy dog.",
+                "Pack my box with five dozen liquor jugs.",
+                "How razorback-jumping frogs can level six piqued gymnasts!",
+                "Sympathizing would fix Quaker objectives.",
+                "Crazy Frederick bought many very exquisite opal jewels.",
+                "Jaded zombies acted quaintly but kept driving their oxen forward.",
+                "Amazingly few discotheques provide jukeboxes.",
+                "Grumpy wizards make toxic brew for the evil queen and jack.",
+                "The five boxing wizards jump quickly.",
+                "Big Fuji waves pitch enzymed kex liquor jugs.",
+                "Lazy dogs often sleep in the sunniest spot in the yard.",
+                "Twelve jovial men quickly pick five ripe mangoes.",
+                "Bright yellow flowers bloom during springtime.",
+                "Jack quietly observed the mesmerizing sunset from the hilltop.",
+                "Few daring explorers venture into the uncharted forest.",
+                "Ducks gracefully glide across the shimmering pond.",
+                "A brisk wind swept across the barren desert landscape.",
+                "Seven curious cats climbed up the ancient oak tree.",
+                "Heavy clouds gathered ominously over the distant mountains.",
+                "Gleaming stars twinkled brightly in the midnight sky.",
+                "Smart students solve tricky problems with logical thinking.",
+                "Vast green fields stretch endlessly beyond the horizon.",
+                "Colorful birds sing melodious tunes at dawn.",
+                "Ten swift deer raced across the open meadow.",
+                "Ancient ruins reveal secrets of a forgotten civilization.",
+                "The bustling market overflowed with vibrant goods and lively chatter.",
+                "Early morning hikers reached the summit before sunrise.",
+                "Crystal-clear water cascades down the rocky cliff.",
+                "Golden sands glisten under the warm tropical sun.",
+                "Mysterious shadows danced along the cobblestone streets.",
+                "Adventurous kids built an elaborate treehouse in the backyard.",
+                "The chef skillfully prepared a delicious five-course meal.",
+                "A sudden thunderstorm caught everyone by surprise.",
+                "Enthusiastic fans cheered loudly for their favorite team.",
+                "Lush gardens display a dazzling array of exotic flowers.",
+                "Careful planning ensures a smooth and successful event.",
+                "Fierce winds howled through the narrow mountain pass.",
+                "The library offers a quiet haven for avid readers.",
+                "Tall skyscrapers define the city’s iconic skyline.",
+                "Playful dolphins leaped gracefully out of the water.",
+                "Whimsical paintings adorn the walls of the cozy cafe.",
+                "The scent of fresh bread wafted through the bustling bakery.",
+                "Bright lanterns illuminated the festive village square.",
+                "Determined athletes train tirelessly for the upcoming marathon.",
+                "Fluffy snowflakes gently blanketed the sleepy town.",
+                "Inventive scientists work on groundbreaking new technologies.",
+                "The majestic eagle soared high above the rugged cliffs.",
+                "Serene lakes reflect the beauty of the surrounding forest.",
+                "Friendly neighbors gathered for an evening barbecue.",
+                "The musician played a haunting melody on the grand piano."
+            ];
 
-        const TOTAL_DOTS = 5;
-        const TOTAL_SHAPES = 5;
-        const TOTAL_ATTEMPTS = 1; // Single attempt
-        const DOT_SIZE = 30;
-        const EDGE_BUFFER = 20;
+            const TOTAL_DOTS = 5;
+            const TOTAL_SHAPES = 5;
+            const TOTAL_ATTEMPTS = 1; // Single attempt
+            const DOT_SIZE = 30;
+            const EDGE_BUFFER = 20;
 
-        let currentAttempt = 1;
-        let totalShapeDotsCount = 0;
-        let timings = [];
-        let keyHoldTimes = [];
-        let backspaceTimings = [];
-        let dotTimings = [];
-        let shapeTimings = [];
-        let shapeMouseMovements = [];
-        let promptTexts = [];
-        let userInputs = [];
-        let detectedLanguages = [];
-        let lastKeyTime = null;
-        let lastMoveTime = 0;
+            let currentAttempt = 1;
+            let totalShapeDotsCount = 0;
+            let timings = [];
+            let keyHoldTimes = [];
+            let backspaceTimings = [];
+            let dotTimings = [];
+            let shapeTimings = [];
+            let shapeMouseMovements = [];
+            let promptTexts = [];
+            let userInputs = [];
+            let detectedLanguages = [];
+            let lastKeyTime = null;
+            let lastMoveTime = 0;
 
-        function initializeTest() {
-            // Reset all tracking arrays
-            timings = [];
-            keyHoldTimes = [];
-            backspaceTimings = [];
-            dotTimings = [];
-            shapeTimings = [];
-            shapeMouseMovements = [];
-            userInputs = [];
-            detectedLanguages = [];
-            promptTexts = [];
-            totalShapeDotsCount = 0;
-            lastKeyTime = null;
-            lastMoveTime = 0;
-            currentAttempt = 1;
+            function initializeTest() {
+                // Reset all tracking arrays
+                timings = [];
+                keyHoldTimes = [];
+                backspaceTimings = [];
+                dotTimings = [];
+                shapeTimings = [];
+                shapeMouseMovements = [];
+                userInputs = [];
+                detectedLanguages = [];
+                promptTexts = [];
+                totalShapeDotsCount = 0;
+                lastKeyTime = null;
+                lastMoveTime = 0;
+                currentAttempt = 1;
 
-            // UI Reset
-            $('#inputText').val('').prop('disabled', false);
-            $('#matchingPercent').text('0');
-            $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
-            $('#shapeArea').empty().append(
-                '<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>'
-            );
-            $('#dotArea').show();
-            $('#shapeArea').show();
-            $('#nextAttempt').removeClass('btn-animated').text('SUBMIT');
-            $('#currentAttempt').text(currentAttempt);
-            $('#taskInstruction').text('Step 1: Click all 5 dots. Step 2: Select 5 correct shapes. Step 3: Type the text exactly as shown.');
-            updateProgressBar(0);
+                // UI Reset
+                $('#inputText').val('').prop('disabled', false);
+                $('#matchingPercent').text('0');
+                $('#dotArea').empty().append('<div id="dotCount" class="dot-count">Dots Clicked: 0/5</div>');
+                $('#shapeArea').empty().append(
+                    '<p id="shapeQuestion" class="mb-2"></p><div id="shapesContainer"></div><div id="shapeCount" class="dot-count">Shapes Selected: 0/5</div>'
+                );
+                $('#dotArea').show();
+                $('#shapeArea').show();
+                $('#nextAttempt').removeClass('btn-animated').text('SUBMIT');
+                $('#currentAttempt').text(currentAttempt);
+                $('#taskInstruction').text('Step 1: Click all 5 dots. Step 2: Select 5 correct shapes. Step 3: Type the text exactly as shown.');
+                updateProgressBar(0);
 
-            // Initialize prompt
-            promptTexts = [sentences[Math.floor(Math.random() * sentences.length)]];
-            $('#promptText').text(promptTexts[0]);
+                // Initialize prompt
+                promptTexts = [sentences[Math.floor(Math.random() * sentences.length)]];
+                $('#promptText').text(promptTexts[0]);
 
-            $('#testSection').show();
-            $('#resultSection').hide();
+                $('#testSection').show();
+                $('#resultSection').hide();
 
-            startDotSequence();
-            startShapeSelection();
-            setupTypingEvents();
-        }
-
-        function updateProgressBar(percentage) {
-            const rounded = Math.floor(percentage);
-            $('#taskProgressBar').css('width', rounded + '%').text(rounded + '%');
-        }
-
-        function startDotSequence() {
-            let dotCount = 0;
-            const area = document.getElementById('dotArea');
-            const areaRect = area.getBoundingClientRect();
-            const timingsArray = [];
-
-            function handleClick(e) {
-                const dot = e.target.closest('.dot');
-                if (!dot) return;
-
-                const clickTime = performance.now();
-                const appearTime = parseFloat(dot.dataset.appearTime);
-                timingsArray.push(clickTime - appearTime);
-
-                dot.remove();
-                dotCount++;
-                totalShapeDotsCount++;
-                $('#dotCount').text(`Dots Clicked: ${dotCount}/${TOTAL_DOTS}`);
-                updateProgress();
-
-                if (dotCount < TOTAL_DOTS) {
-                    createDot();
-                } else {
-                    $('#dotCount').text('All dots clicked successfully!');
-                    area.removeEventListener('click', handleClick);
-                }
+                startDotSequence();
+                startShapeSelection();
+                setupTypingEvents();
             }
 
-            function calculatePosition() {
-                const maxX = area.clientWidth - DOT_SIZE - EDGE_BUFFER * 2;
-                const maxY = area.clientHeight - DOT_SIZE - EDGE_BUFFER * 2;
-                return {
-                    x: EDGE_BUFFER + Math.random() * maxX,
-                    y: EDGE_BUFFER + Math.random() * maxY
-                };
+            function updateProgressBar(percentage) {
+                const rounded = Math.floor(percentage);
+                $('#taskProgressBar').css('width', rounded + '%').text(rounded + '%');
             }
 
-            function createDot() {
-                const dot = document.createElement('div');
-                dot.className = 'dot';
-                const pos = calculatePosition();
+            function startDotSequence() {
+                let dotCount = 0;
+                const area = document.getElementById('dotArea');
+                const areaRect = area.getBoundingClientRect();
+                const timingsArray = [];
 
-                Object.assign(dot.style, {
-                    left: `${pos.x}px`,
-                    top: `${pos.y}px`,
-                    width: `${DOT_SIZE}px`,
-                    height: `${DOT_SIZE}px`
-                });
+                function handleClick(e) {
+                    const dot = e.target.closest('.dot');
+                    if (!dot) return;
 
-                dot.dataset.appearTime = performance.now();
-                area.appendChild(dot);
-            }
+                    const clickTime = performance.now();
+                    const appearTime = parseFloat(dot.dataset.appearTime);
+                    timingsArray.push(clickTime - appearTime);
 
-            area.addEventListener('click', handleClick);
-            createDot();
-            dotTimings[currentAttempt - 1] = timingsArray;
-        }
-
-        function startShapeSelection() {
-            const shapes = ['circle', 'square', 'triangle'];
-            let shapeCount = 0;
-            const timingsArray = [];
-            const mouseMovements = [];
-            let lastX = null, lastY = null, lastTime = null;
-
-            // Mouse movement tracking
-            $('#shapeArea').off('mousemove').on('mousemove', (event) => {
-                const currentTime = performance.now();
-                if (currentTime - lastMoveTime > 50) { // Sample every 50ms
-                    const x = event.pageX - $('#shapeArea').offset().left;
-                    const y = event.pageY - $('#shapeArea').offset().top;
-
-                    let velocity = 0;
-                    let slope = 0;
-                    if (lastX !== null && lastY !== null && lastTime !== null) {
-                        const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
-                        const timeDelta = currentTime - lastTime;
-                        velocity = distance / timeDelta;
-
-                        const deltaX = x - lastX;
-                        const deltaY = y - lastY;
-                        slope = deltaX !== 0 ? deltaY / deltaX : 0;
-                    }
-
-                    mouseMovements.push({
-                        time: currentTime,
-                        x: x,
-                        y: y,
-                        velocity: velocity,
-                        slope: slope
-                    });
-
-                    lastX = x;
-                    lastY = y;
-                    lastTime = currentTime;
-                    lastMoveTime = currentTime;
-                }
-            });
-
-            function showShapes() {
-                if (shapeCount >= TOTAL_SHAPES) {
-                    $('#shapesContainer').empty();
-                    $('#shapeQuestion').text('All shapes selected.');
-                    $('#shapeArea').off('mousemove');
-                    shapeTimings[currentAttempt - 1] = timingsArray;
-                    shapeMouseMovements[currentAttempt - 1] = mouseMovements;
-                    return;
-                }
-
-                $('#shapesContainer').empty();
-                const targetShape = shapes[Math.floor(Math.random() * shapes.length)];
-                $('#shapeQuestion').text(`Please select the ${targetShape}.`);
-
-                const shapeAppearTime = performance.now();
-                shapes.sort(() => Math.random() - 0.5).forEach(shapeType => {
-                    const shape = $('<div></div>').addClass(`shape ${shapeType}`).css({
-                        left: `${Math.random() * ($('#shapeArea')[0].clientWidth - 60)}px`,
-                        top: `${Math.random() * ($('#shapeArea')[0].clientHeight - 60)}px`,
-                        position: 'absolute'
-                    });
-
-                    shape.on('click touchstart', (event) => {
-                        event.preventDefault();
-                        const clickTime = performance.now();
-                        const reactionTime = clickTime - shapeAppearTime;
-                        if (shapeType === targetShape) {
-                            timingsArray.push({ reactionTime: reactionTime, isCorrect: 1 });
-                            shapeCount++;
-                            totalShapeDotsCount++;
-                            $('#shapeCount').text(`Shapes Selected: ${shapeCount}/${TOTAL_SHAPES}`);
-                            updateProgress();
-                            showShapes();
-                        } else {
-                            alert('Wrong shape clicked. Please select the correct shape.');
-                        }
-                    });
-
-                    $('#shapesContainer').append(shape);
-                });
-            }
-
-            showShapes();
-        }
-
-        function updateProgress() {
-            const userInput = $('#inputText').val().trim();
-            const typingProgress = (userInput.length / promptTexts[currentAttempt - 1].length) * TOTAL_DOTS;
-            const progress = Math.floor(
-                (totalShapeDotsCount + typingProgress) / (TOTAL_DOTS + TOTAL_SHAPES + TOTAL_DOTS) * 100
-            );
-            updateProgressBar(progress);
-        }
-
-        function setupTypingEvents() {
-            $('#inputText').off('keydown keyup copy paste cut contextmenu')
-                .on('keydown', function(event) {
-                    const currentTime = Date.now();
-                    if (lastKeyTime !== null) {
-                        timings[currentAttempt - 1] = timings[currentAttempt - 1] || [];
-                        timings[currentAttempt - 1].push(currentTime - lastKeyTime);
-                    }
-                    lastKeyTime = currentTime;
-
-                    keyHoldTimes[currentAttempt - 1] = keyHoldTimes[currentAttempt - 1] || [];
-                    keyHoldTimes[currentAttempt - 1].push({
-                        keydownTime: currentTime,
-                        keyupTime: null,
-                        duration: null
-                    });
-
-                    if (event.key === 'Backspace') {
-                        backspaceTimings[currentAttempt - 1] = backspaceTimings[currentAttempt - 1] || [];
-                        backspaceTimings[currentAttempt - 1].push({
-                            time: currentTime,
-                            action: 'pressed'
-                        });
-                    }
-                })
-                .on('keyup', function(event) {
-                    const currentTime = Date.now();
-                    const keyDataArray = keyHoldTimes[currentAttempt - 1];
-                    for (let i = keyDataArray.length - 1; i >= 0; i--) {
-                        if (!keyDataArray[i].keyupTime) {
-                            keyDataArray[i].keyupTime = currentTime;
-                            keyDataArray[i].duration = currentTime - keyDataArray[i].keydownTime;
-                            break;
-                        }
-                    }
-
-                    if (event.key === 'Backspace') {
-                        backspaceTimings[currentAttempt - 1] = backspaceTimings[currentAttempt - 1] || [];
-                        backspaceTimings[currentAttempt - 1].push({
-                            time: currentTime,
-                            action: 'released'
-                        });
-                    }
-
+                    dot.remove();
+                    dotCount++;
+                    totalShapeDotsCount++;
+                    $('#dotCount').text(`Dots Clicked: ${dotCount}/${TOTAL_DOTS}`);
                     updateProgress();
-                })
-                .on('copy paste cut contextmenu', function(e) {
-                    e.preventDefault();
-                    if (e.type !== 'contextmenu') {
-                        alert('Copying and pasting are disabled. Please type manually.');
+
+                    if (dotCount < TOTAL_DOTS) {
+                        createDot();
+                    } else {
+                        $('#dotCount').text('All dots clicked successfully!');
+                        area.removeEventListener('click', handleClick);
+                    }
+                }
+
+                function calculatePosition() {
+                    const maxX = area.clientWidth - DOT_SIZE - EDGE_BUFFER * 2;
+                    const maxY = area.clientHeight - DOT_SIZE - EDGE_BUFFER * 2;
+                    return {
+                        x: EDGE_BUFFER + Math.random() * maxX,
+                        y: EDGE_BUFFER + Math.random() * maxY
+                    };
+                }
+
+                function createDot() {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    const pos = calculatePosition();
+
+                    Object.assign(dot.style, {
+                        left: `${pos.x}px`,
+                        top: `${pos.y}px`,
+                        width: `${DOT_SIZE}px`,
+                        height: `${DOT_SIZE}px`
+                    });
+
+                    dot.dataset.appearTime = performance.now();
+                    area.appendChild(dot);
+                }
+
+                area.addEventListener('click', handleClick);
+                createDot();
+                dotTimings[currentAttempt - 1] = timingsArray;
+            }
+
+            function startShapeSelection() {
+                const shapes = ['circle', 'square', 'triangle'];
+                let shapeCount = 0;
+                const timingsArray = [];
+                const mouseMovements = [];
+                let lastX = null, lastY = null, lastTime = null;
+
+                // Mouse movement tracking
+                $('#shapeArea').off('mousemove').on('mousemove', (event) => {
+                    const currentTime = performance.now();
+                    if (currentTime - lastMoveTime > 50) { // Sample every 50ms
+                        const x = event.pageX - $('#shapeArea').offset().left;
+                        const y = event.pageY - $('#shapeArea').offset().top;
+
+                        let velocity = 0;
+                        let slope = 0;
+                        if (lastX !== null && lastY !== null && lastTime !== null) {
+                            const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+                            const timeDelta = currentTime - lastTime;
+                            velocity = distance / timeDelta;
+
+                            const deltaX = x - lastX;
+                            const deltaY = y - lastY;
+                            slope = deltaX !== 0 ? deltaY / deltaX : 0;
+                        }
+
+                        mouseMovements.push({
+                            time: currentTime,
+                            x: x,
+                            y: y,
+                            velocity: velocity,
+                            slope: slope
+                        });
+
+                        lastX = x;
+                        lastY = y;
+                        lastTime = currentTime;
+                        lastMoveTime = currentTime;
                     }
                 });
-        }
 
-        // Submission handler
-        $('#nextAttempt').click(async function() {
-            const userInput = $('#inputText').val().trim();
-            const $btn = $(this);
+                function showShapes() {
+                    if (shapeCount >= TOTAL_SHAPES) {
+                        $('#shapesContainer').empty();
+                        $('#shapeQuestion').text('All shapes selected.');
+                        $('#shapeArea').off('mousemove');
+                        shapeTimings[currentAttempt - 1] = timingsArray;
+                        shapeMouseMovements[currentAttempt - 1] = mouseMovements;
+                        return;
+                    }
 
-            if (!validateInput(userInput)) return;
+                    $('#shapesContainer').empty();
+                    const targetShape = shapes[Math.floor(Math.random() * shapes.length)];
+                    $('#shapeQuestion').text(`Please select the ${targetShape}.`);
 
-            userInputs.push(userInput);
-            $btn.addClass('btn-animated');
-            $('#testSection').hide();
-            $('#inputText').prop('disabled', true);
+                    const shapeAppearTime = performance.now();
+                    shapes.sort(() => Math.random() - 0.5).forEach(shapeType => {
+                        const shape = $('<div></div>').addClass(`shape ${shapeType}`).css({
+                            left: `${Math.random() * ($('#shapeArea')[0].clientWidth - 60)}px`,
+                            top: `${Math.random() * ($('#shapeArea')[0].clientHeight - 60)}px`,
+                            position: 'absolute'
+                        });
 
-            try {
-                const detectedLanguage = await detectLanguage(userInput);
-                detectedLanguages[currentAttempt - 1] = detectedLanguage;
-                await saveDataToServer();
-            } catch (error) {
-                console.error('Submission error:', error);
-                AlertTost("error", "Submission failed. Please try again.");
-            }
-        });
+                        shape.on('click touchstart', (event) => {
+                            event.preventDefault();
+                            const clickTime = performance.now();
+                            const reactionTime = clickTime - shapeAppearTime;
+                            if (shapeType === targetShape) {
+                                timingsArray.push({ reactionTime: reactionTime, isCorrect: 1 });
+                                shapeCount++;
+                                totalShapeDotsCount++;
+                                $('#shapeCount').text(`Shapes Selected: ${shapeCount}/${TOTAL_SHAPES}`);
+                                updateProgress();
+                                showShapes();
+                            } else {
+                                alert('Wrong shape clicked. Please select the correct shape.');
+                            }
+                        });
 
-        function validateInput(userInput) {
-            if (!userInput) {
-                alert('Please type the text before proceeding.');
-                return false;
-            }
-            if (userInput !== promptTexts[currentAttempt - 1].trim()) {
-                alert('Input does not match the prompt text.');
-                return false;
-            }
-            if ((dotTimings[currentAttempt - 1]?.length ?? 0) < TOTAL_DOTS) {
-                alert(`Click all ${TOTAL_DOTS} dots before proceeding.`);
-                return false;
-            }
-            if ((shapeTimings[currentAttempt - 1]?.length ?? 0) < TOTAL_SHAPES) {
-                alert(`Select all ${TOTAL_SHAPES} shapes before proceeding.`);
-                return false;
-            }
-            return true;
-        }
-
-        async function saveDataToServer() {
-            const dataToSend = {
-                userId: localStorage.getItem('userId') || generateUniqueId(),
-                timings: sanitizeArray(timings),
-                keyHoldTimes: sanitizeArray(keyHoldTimes),
-                backspaceTimings: sanitizeArray(backspaceTimings),
-                dotTimings: sanitizeArray(dotTimings),
-                shapeTimings: sanitizeArray(shapeTimings),
-                shapeMouseMovements: sanitizeArray(shapeMouseMovements),
-                detectedLanguages: detectedLanguages.filter(Boolean),
-                userInputs: userInputs.filter(Boolean)
-            };
-
-            console.log("Data being sent to server:", dataToSend);
-
-            try {
-                const response = await AjaxCall("/TrainModel/PredictData", dataToSend);
-                const result = JSON.parse(response);
-
-                if (result.status === "SUCCESS") {
-                    $('#matchingPercent').text(result.confidencePercentage.toFixed(2));
-                    $('#matchingPercentAnomaly').text(result.isAnomaly);
-                    
-                    $('#resultSection').show();
-
-                    AlertTost(
-                        result.isAnomaly ? "warning" : "success",
-                        result.isAnomaly
-                            ? "Anomaly detected! Verify user."
-                            : "Behavior matches expected pattern."
-                    );
-                } else {
-                    throw new Error(result.message || "Prediction failed");
+                        $('#shapesContainer').append(shape);
+                    });
                 }
-            } catch (e) {
-                console.error("Server error:", e);
-                AlertTost("error", e.message || "Request failed");
+
+                showShapes();
             }
-        }
 
-        function sanitizeArray(data) {
-            return (Array.isArray(data) ? data : [])
-                .filter(entry => Array.isArray(entry) ? entry.length > 0 : !!entry);
-        }
+            function updateProgress() {
+                const userInput = $('#inputText').val().trim();
+                const typingProgress = (userInput.length / promptTexts[currentAttempt - 1].length) * TOTAL_DOTS;
+                const progress = Math.floor(
+                    (totalShapeDotsCount + typingProgress) / (TOTAL_DOTS + TOTAL_SHAPES + TOTAL_DOTS) * 100
+                );
+                updateProgressBar(progress);
+            }
 
-        function generateUniqueId() {
-            return 'xxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                const r = Math.random() * 16 | 0;
-                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            function setupTypingEvents() {
+                $('#inputText').off('keydown keyup copy paste cut contextmenu')
+                    .on('keydown', function(event) {
+                        const currentTime = Date.now();
+                        if (lastKeyTime !== null) {
+                            timings[currentAttempt - 1] = timings[currentAttempt - 1] || [];
+                            timings[currentAttempt - 1].push(currentTime - lastKeyTime);
+                        }
+                        lastKeyTime = currentTime;
+
+                        keyHoldTimes[currentAttempt - 1] = keyHoldTimes[currentAttempt - 1] || [];
+                        keyHoldTimes[currentAttempt - 1].push({
+                            keydownTime: currentTime,
+                            keyupTime: 0,
+                            duration: 0
+                        });
+
+                        if (event.key === 'Backspace') {
+                            backspaceTimings[currentAttempt - 1] = backspaceTimings[currentAttempt - 1] || [];
+                            backspaceTimings[currentAttempt - 1].push({
+                                time: currentTime,
+                                action: 'pressed'
+                            });
+                        }
+                    })
+                    .on('keyup', function(event) {
+                        const currentTime = Date.now();
+                        const keyDataArray = keyHoldTimes[currentAttempt - 1];
+                        for (let i = keyDataArray.length - 1; i >= 0; i--) {
+                            if (!keyDataArray[i].keyupTime) {
+                                keyDataArray[i].keyupTime = currentTime;
+                                keyDataArray[i].duration = currentTime - keyDataArray[i].keydownTime;
+                                break;
+                            }
+                        }
+
+                        if (event.key === 'Backspace') {
+                            backspaceTimings[currentAttempt - 1] = backspaceTimings[currentAttempt - 1] || [];
+                            backspaceTimings[currentAttempt - 1].push({
+                                time: currentTime,
+                                action: 'released'
+                            });
+                        }
+
+                        updateProgress();
+                    })
+                    .on('copy paste cut contextmenu', function(e) {
+                        e.preventDefault();
+                        if (e.type !== 'contextmenu') {
+                            alert('Copying and pasting are disabled. Please type manually.');
+                        }
+                    });
+            }
+
+            // Submission handler
+            $('#nextAttempt').click(async function() {
+                const userInput = $('#inputText').val().trim();
+                const $btn = $(this);
+
+                if (!validateInput(userInput)) return;
+
+                userInputs.push(userInput);
+                $btn.addClass('btn-animated');
+                $('#testSection').hide();
+                $('#inputText').prop('disabled', true);
+
+                try {
+                    const detectedLanguage = await detectLanguage(userInput);
+                    detectedLanguages[currentAttempt - 1] = detectedLanguage;
+                    await saveDataToServer();
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    AlertTost("error", "Submission failed. Please try again.");
+                }
             });
-        }
 
-        async function detectLanguage(text) {
-            try {
-                const response = await fetch('https://ws.detectlanguage.com/0.2/detect', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer a7c8eba8949c03ecb5ac91cf5d1c8497',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ q: text })
-                });
-
-                const data = await response.json();
-                if (data.data && data.data.detections.length > 0) {
-                    return data.data.detections[0].language; // e.g., "en"
-                } else {
-                    throw new Error("No language detected");
+            function validateInput(userInput) {
+                if (!userInput) {
+                    alert('Please type the text before proceeding.');
+                    return false;
                 }
-            } catch (error) {
-                console.error("Language detection error:", error);
-                return "unknown";
+                if (userInput !== promptTexts[currentAttempt - 1].trim()) {
+                    alert('Input does not match the prompt text.');
+                    return false;
+                }
+                if ((dotTimings[currentAttempt - 1]?.length ?? 0) < TOTAL_DOTS) {
+                    alert(`Click all ${TOTAL_DOTS} dots before proceeding.`);
+                    return false;
+                }
+                if ((shapeTimings[currentAttempt - 1]?.length ?? 0) < TOTAL_SHAPES) {
+                    alert(`Select all ${TOTAL_SHAPES} shapes before proceeding.`);
+                    return false;
+                }
+                return true;
             }
-        }
 
-        // Reset functionality
-        $('#tryAgain').click(initializeTest);
-        initializeTest();
-    });
+            async function saveDataToServer() {
+                const dataToSend = {
+                    userId: localStorage.getItem('userId') || generateUniqueId(),
+                    timings: sanitizeArray(timings),
+                    keyHoldTimes: sanitizeArray(keyHoldTimes),
+                    backSpaceTimings: sanitizeArray(backspaceTimings),
+                    dotTimings: sanitizeArray(dotTimings),
+                    shapeTimings: sanitizeArray(shapeTimings),
+                    shapeMouseMovements: sanitizeArray(shapeMouseMovements),
+                    detectedLanguages: detectedLanguages.filter(Boolean),
+                    userInputs: userInputs.filter(Boolean)
+                };
+
+                console.log("Data being sent to server:", dataToSend);
+
+                try {
+                    const response = await AjaxCall("/TrainModel/PredictData", dataToSend);
+                    const result = JSON.parse(response);
+                        if (result.status === "SUCCESS") {
+                            $('#matchingPercent').text(result.confidencePercentage.toFixed(2));
+                            $('#matchingPercentAnomaly').text(result.isAnomaly);
+
+                            $('#resultSection').show();
+
+                            AlertTost(
+                                result.IsAnomaly ? "warning" : "success",
+                                result.IsAnomaly
+                                    ? "Anomaly detected! Verify user."
+                                    : "Behavior matches expected pattern."
+                            );
+    } else {
+        ('#testSection').show();
+        throw new Error(result.Message || "Prediction failed");
+    }
+
+                } catch (e) {
+                    console.error("Server error:", e);
+                    AlertTost("error", e.message || "Request failed");
+                }
+            }
+
+            function sanitizeArray(data) {
+                return (Array.isArray(data) ? data : [])
+                    .filter(entry => Array.isArray(entry) ? entry.length > 0 : !!entry);
+            }
+
+            function generateUniqueId() {
+                return 'xxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                    const r = Math.random() * 16 | 0;
+                    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                });
+            }
+
+            async function detectLanguage(text) {
+                try {
+                    const response = await fetch('https://ws.detectlanguage.com/0.2/detect', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer a7c8eba8949c03ecb5ac91cf5d1c8497',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ q: text })
+                    });
+
+                    const data = await response.json();
+                    if (data.data && data.data.detections.length > 0) {
+                        return data.data.detections[0].language; // e.g., "en"
+                    } else {
+                        throw new Error("No language detected");
+                    }
+                } catch (error) {
+                    console.error("Language detection error:", error);
+                    return "unknown";
+                }
+            }
+
+            // Reset functionality
+            $('#tryAgain').click(initializeTest);
+            initializeTest();
+        });
 </script>

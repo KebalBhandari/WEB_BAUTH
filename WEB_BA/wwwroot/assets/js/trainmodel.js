@@ -284,14 +284,14 @@
             // Define new handlers
             this.keydownHandler = (event) => {
                 const currentTime = Date.now();
-                if (this.lastKeyTime !== null) {
+                if (this.lastKeyTime !== 0) {
                     this.timings[this.currentAttempt - 1] = this.timings[this.currentAttempt - 1] || [];
                     this.timings[this.currentAttempt - 1].push(currentTime - this.lastKeyTime);
                 }
                 this.lastKeyTime = currentTime;
 
                 this.keyHoldTimes[this.currentAttempt - 1] = this.keyHoldTimes[this.currentAttempt - 1] || [];
-                this.keyHoldTimes[this.currentAttempt - 1].push({ keydownTime: currentTime, keyupTime: null, duration: null });
+                this.keyHoldTimes[this.currentAttempt - 1].push({ keydownTime: currentTime, keyupTime: 0, duration: 0 });
 
                 if (event.key === 'Backspace') {
                     this.backspaceTimings[this.currentAttempt - 1] = this.backspaceTimings[this.currentAttempt - 1] || [];
@@ -303,7 +303,7 @@
                 const currentTime = Date.now();
                 const keyDataArray = this.keyHoldTimes[this.currentAttempt - 1];
                 for (let i = keyDataArray.length - 1; i >= 0; i--) {
-                    if (keyDataArray[i].keyupTime === null) {
+                    if (keyDataArray[i].keyupTime === 0) {
                         keyDataArray[i].keyupTime = currentTime;
                         keyDataArray[i].duration = currentTime - keyDataArray[i].keydownTime;
                         break;
@@ -351,8 +351,11 @@
                 this.startAttempt();
             } else {
                 $('#nextAttempt').addClass('btn-animated');
-                $('#testSection').hide();
-                await this.saveDataToServer();
+                const success = await this.saveDataToServer();
+                if (success) {
+                    document.getElementById('testSection').style.display = 'none';
+                }
+
             }
         },
 
@@ -411,12 +414,13 @@
 
             if (!this.validateData(dataToSend)) {
                 AlertTost("error", "Incomplete data. Please complete all attempts.");
-                return;
+                return false;
             }
 
             console.log("Data being sent to server:", dataToSend);
             const response = await AjaxCall("/TrainModel/SaveUserData", dataToSend);
             this.handleServerResponse(response);
+            return true;
         },
 
         removeInvalidAttempts(data) {
@@ -477,8 +481,10 @@
         }
     };
 
-    $('#nextAttempt').click(async function () {
-        const userInput = $('#inputText').val().trim();
+    document.getElementById('nextAttempt').addEventListener('click', async () => {
+        const userInputElement = document.getElementById('inputText');
+        const userInput = userInputElement.value.trim();
+
         if (!userInput) {
             alert("Please type the text before submitting.");
             return;
@@ -495,7 +501,11 @@
         }
     });
 
-    $('#tryAgain').click(() => BehavioralAuth.init());
+
+    document.getElementById('tryAgain').addEventListener('click', () => {
+        BehavioralAuth.init();
+    });
+
 
     window.onerror = (msg, url, lineNo, columnNo, error) => {
         console.error(`Error: ${msg}\nAt: ${url}:${lineNo}:${columnNo}\nStack: ${error.stack}`);
@@ -515,7 +525,7 @@
 
         const data = await response.json();
         if (data.data && data.data.detections.length > 0) {
-            return data.data.detections[0].language; // Returns detected language code (e.g., "en", "fr")
+            return data.data.detections[0].language;
         } else {
             throw new Error("No language detected");
         }

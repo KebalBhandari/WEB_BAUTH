@@ -127,22 +127,35 @@
         });
 
 
-        $('#condition_button').click(function (event) {
+        document.getElementById('condition_button').addEventListener('click', function (event) {
             event.preventDefault();
 
-            if ($('#emailaddress').val() == "") {
+            const email = document.getElementById('emailaddress').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const passwordError = document.querySelector('[data-valmsg-for="Password"]');
+
+            if (!email) {
                 AlertTost('error', 'Email is required !!!');
+                return;
             }
-            else if ($('#password').val() == "") {
+
+            if (!password) {
                 AlertTost('error', 'Password is required !!!');
+                return;
             }
-            else {
-                $('.uil-sign-out-alt').hide();
-                $('.indicator-label').hide();
-                $('.indicator-progress').show();
-                $('form').submit();
+
+            if (passwordError && passwordError.textContent.trim() !== "") {
+                AlertTost('error', 'Please correct password errors before submitting.');
+                return;
             }
+
+            document.querySelector('.uil-sign-out-alt').style.display = 'none';
+            document.querySelector('.indicator-label').style.display = 'none';
+            document.querySelector('.indicator-progress').style.display = 'block';
+
+            document.querySelector('form').submit();
         });
+
     </script>
 </body>
 </html>

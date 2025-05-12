@@ -14,7 +14,7 @@ namespace WEB_BA.Models
         public List<List<KeyHoldTime>> KeyHoldTimes { get; set; } = new List<List<KeyHoldTime>>();
 
         [JsonProperty("backspaceTimings", NullValueHandling = NullValueHandling.Ignore)]
-        public List<List<BackspaceTiming>> BackspaceTimings { get; set; } = new List<List<BackspaceTiming>>();
+        public List<List<BackSpaceTiming>> BackSpaceTimings { get; set; } = new List<List<BackSpaceTiming>>();
 
         [JsonProperty("dotTimings", NullValueHandling = NullValueHandling.Ignore)]
         public List<List<double>> DotTimings { get; set; } = new List<List<double>>();
@@ -31,11 +31,17 @@ namespace WEB_BA.Models
 
     public class KeyHoldTime
     {
+        [JsonProperty("keydownTime")]
+        public double KeydownTime { get; set; }
+
+        [JsonProperty("keyupTime")]
+        public double KeyupTime { get; set; }
+
         [JsonProperty("duration")]
         public double Duration { get; set; }
     }
 
-    public class BackspaceTiming
+    public class BackSpaceTiming
     {
         [JsonProperty("time")]
         public double Time { get; set; }

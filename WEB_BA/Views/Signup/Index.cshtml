@@ -144,26 +144,51 @@
             updateButtonState();
         });
 
-            $('#condition_button').click(function () {
-            if ($('#Username').val() == "") {
+        document.getElementById('condition_button').addEventListener('click', function () {
+            const username = document.getElementById('Username').value.trim();
+            const email = document.getElementById('Email').value.trim();
+            const password = document.getElementById('Password').value.trim();
+            const confirmPassword = document.getElementById('ConfirmPassword').value.trim();
+
+            const passwordError = document.querySelector('[data-valmsg-for="Password"]');
+            const confirmPasswordError = document.querySelector('[data-valmsg-for="ConfirmPassword"]');
+
+            if (!username) {
                 AlertTost('error', 'Username is required !!!');
+                return;
             }
-            else if ($('#Email').val() == "") {
+
+            if (!email) {
                 AlertTost('error', 'Email is required !!!');
+                return;
             }
-            else if ($('#Password').val() == "") {
+
+            if (!password) {
                 AlertTost('error', 'Password is required !!!');
+                return;
             }
-            else if ($('#ConfirmPassword').val() == "") {
+
+            if (!confirmPassword) {
                 AlertTost('error', 'Confirm your Password !!!');
+                return;
             }
-            else {
-                $('.uil-sign-out-alt"').hide();
-                $('.indicator-label').hide();
-                $('.indicator-progress').show();
-                $('#RequestSignUp').submit();
+
+            if (
+                (passwordError && passwordError.textContent.trim() !== "") ||
+                (confirmPasswordError && confirmPasswordError.textContent.trim() !== "")
+            ) {
+                AlertTost('error', 'Please correct all password validation errors before submitting.');
+                return;
             }
+
+            // Passed all checks: show progress indicator and submit
+            document.querySelector('.uil-sign-out-alt').style.display = 'none';
+            document.querySelector('.indicator-label').style.display = 'none';
+            document.querySelector('.indicator-progress').style.display = 'block';
+
+            document.getElementById('RequestSignUp').submit();
         });
+
     </script>
 
 </body>

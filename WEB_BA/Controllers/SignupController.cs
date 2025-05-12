@@ -65,9 +65,9 @@ namespace WEB_BA.Controllers
                             return RedirectToAction("Index", "Login");
                         }
                         else if (jsonResponse != null && jsonResponse?.status == "ERROR")
-                        {
+                        {   
                             TempData["msgtype"] = "info";
-                            TempData["message"] = jsonResponse.message;
+                            TempData["message"] = (string)jsonResponse.message;
                             return View(model);
                         }
                         else
