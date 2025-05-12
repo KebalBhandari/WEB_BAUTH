@@ -59,6 +59,7 @@
                                             <p class="resultAnomoly">Is Anomaly: <span id="matchingPercentAnomaly">False</span></p>
                                             <p class="result">Confidence Percentage: <span id="matchingPercent">0.00</span>%</p>
                                             <p class="result">Average Anamoly Score: <span id="AverageAnamolyScore">0.00</span></p>
+                                            <p class="result">Max. Anamoly Score: <span id="MaxAnamolyScore">0.00</span></p>
                                             
                                             <button class="btn btn-secondary" id="tryAgain">Try Again</button>
                                         </div>
@@ -466,6 +467,7 @@
                             $('#matchingPercent').text(result.confidencePercentage.toFixed(2));
                             $('#matchingPercentAnomaly').text(result.isAnomaly);
                             $('#AverageAnamolyScore').text(result.avgAnomalyScore);
+                            $('#MaxAnamolyScore').text(result.maxAnomalyScore);
 
                             $('#resultSection').show();
 
